@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="TarifDefterim.Api/TarifDefterim.Api.csproj" />
+  <Project Path="TarifDefterim.Application/TarifDefterim.Application.csproj" />
+  <Project Path="TarifDefterim.Domain/TarifDefterim.Domain.csproj" />
+  <Project Path="TarifDefterim.Infrastructure/TarifDefterim.Infrastructure.csproj" />
+</Solution>

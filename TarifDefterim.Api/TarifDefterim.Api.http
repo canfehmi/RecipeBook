@@ -1,0 +1,6 @@
+@TarifDefterim.Api_HostAddress = http://localhost:5152
+
+GET {{TarifDefterim.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
