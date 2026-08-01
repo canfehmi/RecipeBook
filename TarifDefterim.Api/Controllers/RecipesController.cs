@@ -70,6 +70,43 @@ public class RecipesController(IRecipeService recipeService) : ControllerBase
         }
     }
 
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(RecipeDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateRecipe(
+        Guid id,
+        [FromBody] UpdateRecipeDto dto,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var recipe = await recipeService.UpdateRecipeAsync(id, GetUserId(), dto, cancellationToken);
+            return Ok(recipe);
+        }
+        catch (FamilyBusinessException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> DeleteRecipe(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await recipeService.DeleteRecipeAsync(id, GetUserId(), cancellationToken);
+            return NoContent();
+        }
+        catch (FamilyBusinessException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpGet("pending-approval")]
     [ProducesResponseType(typeof(IReadOnlyList<RecipeDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -96,6 +133,24 @@ public class RecipesController(IRecipeService recipeService) : ControllerBase
         try
         {
             await recipeService.ApproveRecipeAsync(id, GetUserId(), cancellationToken);
+            return NoContent();
+        }
+        catch (FamilyBusinessException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("{id:guid}/reject")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> RejectRecipe(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await recipeService.RejectRecipeAsync(id, GetUserId(), cancellationToken);
             return NoContent();
         }
         catch (FamilyBusinessException ex)

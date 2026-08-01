@@ -26,6 +26,10 @@ public static class DependencyInjection
         services.Configure<CloudinarySettings>(configuration.GetSection(CloudinarySettings.SectionName));
         services.AddScoped<IImageStorageService, CloudinaryImageStorageService>();
 
+        services.Configure<MailSettings>(configuration.GetSection(MailSettings.SectionName));
+        services.AddSingleton<EmailTemplateRenderer>();
+        services.AddScoped<IEmailService, EmailService>();
+
         return services;
     }
 }

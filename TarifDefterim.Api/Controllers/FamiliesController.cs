@@ -140,6 +140,70 @@ public class FamiliesController(IFamilyService familyService) : ControllerBase
         }
     }
 
+    [HttpPost("{familyId:guid}/members/{targetUserId}/demote-member")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> DemoteToMember(
+        Guid familyId,
+        string targetUserId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await familyService.DemoteToMemberAsync(
+                familyId,
+                targetUserId,
+                GetUserId(),
+                cancellationToken);
+
+            return NoContent();
+        }
+        catch (FamilyBusinessException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{familyId:guid}/members/{targetUserId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> RemoveMember(
+        Guid familyId,
+        string targetUserId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await familyService.RemoveMemberAsync(
+                familyId,
+                targetUserId,
+                GetUserId(),
+                cancellationToken);
+
+            return NoContent();
+        }
+        catch (FamilyBusinessException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("leave")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> LeaveFamily(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await familyService.LeaveFamilyAsync(GetUserId(), cancellationToken);
+            return NoContent();
+        }
+        catch (FamilyBusinessException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     private string GetUserId() =>
         User.FindFirstValue(ClaimTypes.NameIdentifier)
         ?? throw new InvalidOperationException("Kullanıcı kimliği bulunamadı.");

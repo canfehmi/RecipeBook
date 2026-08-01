@@ -15,6 +15,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Recipe> Recipes => Set<Recipe>();
     public DbSet<RecipeIngredient> RecipeIngredients => Set<RecipeIngredient>();
 
+    IQueryable<ApplicationUser> IApplicationDbContext.Users => Users;
     IQueryable<Family> IApplicationDbContext.Families => Families;
     IQueryable<FamilyMember> IApplicationDbContext.FamilyMembers => FamilyMembers;
     IQueryable<FamilyJoinRequest> IApplicationDbContext.FamilyJoinRequests => FamilyJoinRequests;
@@ -28,6 +29,15 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<ApplicationUser>(entity =>
+        {
+            entity.Property(u => u.EmailVerificationTokenHash)
+                .HasMaxLength(64);
+
+            entity.Property(u => u.PasswordResetTokenHash)
+                .HasMaxLength(64);
+        });
 
         builder.Entity<Family>(entity =>
         {

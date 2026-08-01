@@ -30,7 +30,8 @@ public record RecipeDto(
     Guid? SourceGlobalRecipeId,
     RecipeStatus Status,
     DateTime CreatedAt,
-    IReadOnlyList<RecipeIngredientDto> Ingredients);
+    IReadOnlyList<RecipeIngredientDto> Ingredients,
+    string CreatedByDisplayName);
 
 public record CreateRecipeDto(
     string Title,
@@ -41,4 +42,14 @@ public record CreateRecipeDto(
     int Servings,
     Guid CategoryId,
     Guid? SourceGlobalRecipeId,
+    IReadOnlyList<CreateRecipeIngredientDto> Ingredients);
+
+public record UpdateRecipeDto(
+    string Title,
+    int PrepTimeMinutes,
+    int CookTimeMinutes,
+    string Steps,
+    string? CoverImageUrl,
+    int Servings,
+    Guid CategoryId,
     IReadOnlyList<CreateRecipeIngredientDto> Ingredients);

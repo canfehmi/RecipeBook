@@ -5,6 +5,7 @@ namespace TarifDefterim.Application.Interfaces;
 
 public interface IApplicationDbContext
 {
+    IQueryable<ApplicationUser> Users { get; }
     IQueryable<Family> Families { get; }
     IQueryable<FamilyMember> FamilyMembers { get; }
     IQueryable<FamilyJoinRequest> FamilyJoinRequests { get; }

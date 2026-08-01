@@ -84,6 +84,20 @@ public class RecipeService(IApplicationDbContext dbContext) : IRecipeService
             throw new FamilyBusinessException("Kategori bulunamadı.");
         }
 
+        if (dto.SourceGlobalRecipeId.HasValue)
+        {
+            var alreadyInFamilyBook = await dbContext.Recipes
+                .AnyAsync(r =>
+                    r.SourceGlobalRecipeId == dto.SourceGlobalRecipeId &&
+                    r.FamilyId == membership.FamilyId,
+                    cancellationToken);
+
+            if (alreadyInFamilyBook)
+            {
+                throw new FamilyBusinessException("Bu tarif zaten defterinizde.");
+            }
+        }
+
         var status = membership.Role == FamilyMemberRole.HeadOfHousehold
             ? RecipeStatus.Approved
             : RecipeStatus.PendingApproval;
@@ -129,6 +143,112 @@ public class RecipeService(IApplicationDbContext dbContext) : IRecipeService
             .FirstAsync(cancellationToken);
     }
 
+    public async Task<RecipeDto> UpdateRecipeAsync(
+        Guid recipeId,
+        string userId,
+        UpdateRecipeDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var recipe = await dbContext.Recipes
+            .Include(r => r.Ingredients)
+            .FirstOrDefaultAsync(r => r.Id == recipeId, cancellationToken);
+
+        if (recipe is null)
+        {
+            throw new FamilyBusinessException("Tarif bulunamadı.");
+        }
+
+        if (recipe.Scope != RecipeScope.Family)
+        {
+            throw new FamilyBusinessException("Global tarifler düzenlenemez");
+        }
+
+        var membership = await dbContext.FamilyMembers
+            .FirstOrDefaultAsync(m =>
+                m.UserId == userId &&
+                m.FamilyId == recipe.FamilyId,
+                cancellationToken);
+
+        if (membership is null || membership.Role != FamilyMemberRole.HeadOfHousehold)
+        {
+            throw new FamilyBusinessException("Bu tarifi düzenleme yetkiniz yok.");
+        }
+
+        var categoryExists = await dbContext.Categories
+            .AnyAsync(c => c.Id == dto.CategoryId, cancellationToken);
+
+        if (!categoryExists)
+        {
+            throw new FamilyBusinessException("Kategori bulunamadı.");
+        }
+
+        recipe.Title = dto.Title.Trim();
+        recipe.PrepTimeMinutes = dto.PrepTimeMinutes;
+        recipe.CookTimeMinutes = dto.CookTimeMinutes;
+        recipe.Steps = dto.Steps.Trim();
+        recipe.CoverImageUrl = dto.CoverImageUrl;
+        recipe.Servings = dto.Servings;
+        recipe.CategoryId = dto.CategoryId;
+
+        foreach (var ingredient in recipe.Ingredients.ToList())
+        {
+            dbContext.Remove(ingredient);
+        }
+
+        foreach (var ingredient in dto.Ingredients.OrderBy(i => i.SortOrder))
+        {
+            dbContext.Add(new RecipeIngredient
+            {
+                Id = Guid.NewGuid(),
+                RecipeId = recipe.Id,
+                Name = ingredient.Name.Trim(),
+                Amount = ingredient.Amount,
+                Unit = ingredient.Unit.Trim(),
+                SortOrder = ingredient.SortOrder
+            });
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return await dbContext.Recipes
+            .Where(r => r.Id == recipe.Id)
+            .Select(MapRecipe)
+            .FirstAsync(cancellationToken);
+    }
+
+    public async Task DeleteRecipeAsync(
+        Guid recipeId,
+        string userId,
+        CancellationToken cancellationToken = default)
+    {
+        var recipe = await dbContext.Recipes
+            .FirstOrDefaultAsync(r => r.Id == recipeId, cancellationToken);
+
+        if (recipe is null)
+        {
+            throw new FamilyBusinessException("Tarif bulunamadı.");
+        }
+
+        if (recipe.Scope != RecipeScope.Family)
+        {
+            throw new FamilyBusinessException("Global tarifler silinemez");
+        }
+
+        var membership = await dbContext.FamilyMembers
+            .FirstOrDefaultAsync(m =>
+                m.UserId == userId &&
+                m.FamilyId == recipe.FamilyId,
+                cancellationToken);
+
+        if (membership is null || membership.Role != FamilyMemberRole.HeadOfHousehold)
+        {
+            throw new FamilyBusinessException("Bu tarifi silme yetkiniz yok.");
+        }
+
+        dbContext.Remove(recipe);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task ApproveRecipeAsync(
         Guid recipeId,
         string approverUserId,
@@ -162,6 +282,39 @@ public class RecipeService(IApplicationDbContext dbContext) : IRecipeService
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task RejectRecipeAsync(
+        Guid recipeId,
+        string approverUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var recipe = await dbContext.Recipes
+            .FirstOrDefaultAsync(r => r.Id == recipeId, cancellationToken);
+
+        if (recipe is null)
+        {
+            throw new FamilyBusinessException("Tarif bulunamadı.");
+        }
+
+        if (recipe.Status != RecipeStatus.PendingApproval)
+        {
+            throw new FamilyBusinessException("Bu tarif onay bekliyor durumunda değil.");
+        }
+
+        var approverMembership = await dbContext.FamilyMembers
+            .FirstOrDefaultAsync(m =>
+                m.UserId == approverUserId &&
+                m.FamilyId == recipe.FamilyId,
+                cancellationToken);
+
+        if (approverMembership is null || approverMembership.Role != FamilyMemberRole.HeadOfHousehold)
+        {
+            throw new FamilyBusinessException("Bu tarifi reddetme yetkiniz yok.");
+        }
+
+        dbContext.Remove(recipe);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<RecipeDto>> GetPendingApprovalRecipesAsync(
         string userId,
         CancellationToken cancellationToken = default)
@@ -181,6 +334,142 @@ public class RecipeService(IApplicationDbContext dbContext) : IRecipeService
             .OrderBy(r => r.CreatedAt)
             .Select(MapRecipe)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<RecipeDto> CreateGlobalRecipeAsync(
+        string adminUserId,
+        CreateRecipeDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var categoryExists = await dbContext.Categories
+            .AnyAsync(c => c.Id == dto.CategoryId, cancellationToken);
+
+        if (!categoryExists)
+        {
+            throw new FamilyBusinessException("Kategori bulunamadı.");
+        }
+
+        var recipe = new Recipe
+        {
+            Id = Guid.NewGuid(),
+            Title = dto.Title.Trim(),
+            PrepTimeMinutes = dto.PrepTimeMinutes,
+            CookTimeMinutes = dto.CookTimeMinutes,
+            Steps = dto.Steps.Trim(),
+            CoverImageUrl = dto.CoverImageUrl,
+            Servings = dto.Servings,
+            CategoryId = dto.CategoryId,
+            Scope = RecipeScope.Global,
+            FamilyId = null,
+            SourceGlobalRecipeId = null,
+            CreatedByUserId = adminUserId,
+            Status = RecipeStatus.Approved,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        dbContext.Add(recipe);
+
+        foreach (var ingredient in dto.Ingredients.OrderBy(i => i.SortOrder))
+        {
+            dbContext.Add(new RecipeIngredient
+            {
+                Id = Guid.NewGuid(),
+                RecipeId = recipe.Id,
+                Name = ingredient.Name.Trim(),
+                Amount = ingredient.Amount,
+                Unit = ingredient.Unit.Trim(),
+                SortOrder = ingredient.SortOrder
+            });
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return await dbContext.Recipes
+            .Where(r => r.Id == recipe.Id)
+            .Select(MapRecipe)
+            .FirstAsync(cancellationToken);
+    }
+
+    public async Task<RecipeDto> UpdateGlobalRecipeAsync(
+        Guid recipeId,
+        UpdateRecipeDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var recipe = await dbContext.Recipes
+            .Include(r => r.Ingredients)
+            .FirstOrDefaultAsync(r => r.Id == recipeId, cancellationToken);
+
+        if (recipe is null)
+        {
+            throw new FamilyBusinessException("Tarif bulunamadı.");
+        }
+
+        if (recipe.Scope != RecipeScope.Global)
+        {
+            throw new FamilyBusinessException("Bu tarif global değil.");
+        }
+
+        var categoryExists = await dbContext.Categories
+            .AnyAsync(c => c.Id == dto.CategoryId, cancellationToken);
+
+        if (!categoryExists)
+        {
+            throw new FamilyBusinessException("Kategori bulunamadı.");
+        }
+
+        recipe.Title = dto.Title.Trim();
+        recipe.PrepTimeMinutes = dto.PrepTimeMinutes;
+        recipe.CookTimeMinutes = dto.CookTimeMinutes;
+        recipe.Steps = dto.Steps.Trim();
+        recipe.CoverImageUrl = dto.CoverImageUrl;
+        recipe.Servings = dto.Servings;
+        recipe.CategoryId = dto.CategoryId;
+
+        foreach (var ingredient in recipe.Ingredients.ToList())
+        {
+            dbContext.Remove(ingredient);
+        }
+
+        foreach (var ingredient in dto.Ingredients.OrderBy(i => i.SortOrder))
+        {
+            dbContext.Add(new RecipeIngredient
+            {
+                Id = Guid.NewGuid(),
+                RecipeId = recipe.Id,
+                Name = ingredient.Name.Trim(),
+                Amount = ingredient.Amount,
+                Unit = ingredient.Unit.Trim(),
+                SortOrder = ingredient.SortOrder
+            });
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return await dbContext.Recipes
+            .Where(r => r.Id == recipe.Id)
+            .Select(MapRecipe)
+            .FirstAsync(cancellationToken);
+    }
+
+    public async Task DeleteGlobalRecipeAsync(
+        Guid recipeId,
+        CancellationToken cancellationToken = default)
+    {
+        var recipe = await dbContext.Recipes
+            .FirstOrDefaultAsync(r => r.Id == recipeId, cancellationToken);
+
+        if (recipe is null)
+        {
+            throw new FamilyBusinessException("Tarif bulunamadı.");
+        }
+
+        if (recipe.Scope != RecipeScope.Global)
+        {
+            throw new FamilyBusinessException("Bu tarif global değil.");
+        }
+
+        dbContext.Remove(recipe);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private static readonly System.Linq.Expressions.Expression<
@@ -207,5 +496,6 @@ public class RecipeService(IApplicationDbContext dbContext) : IRecipeService
                 i.Amount,
                 i.Unit,
                 i.SortOrder))
-            .ToList());
+            .ToList(),
+        r.CreatedByUser.DisplayName);
 }

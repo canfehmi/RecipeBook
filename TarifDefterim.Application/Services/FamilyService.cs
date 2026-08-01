@@ -24,24 +24,7 @@ public class FamilyService(IApplicationDbContext dbContext) : IFamilyService
             throw new FamilyBusinessException("Kullanıcının zaten bir ailesi var.");
         }
 
-        var family = new Family
-        {
-            Id = Guid.NewGuid(),
-            InviteCode = await GenerateUniqueInviteCodeAsync(cancellationToken),
-            CreatedAt = DateTime.UtcNow
-        };
-
-        var member = new FamilyMember
-        {
-            Id = Guid.NewGuid(),
-            FamilyId = family.Id,
-            UserId = userId,
-            Role = FamilyMemberRole.HeadOfHousehold,
-            JoinedAt = DateTime.UtcNow
-        };
-
-        dbContext.Add(family);
-        dbContext.Add(member);
+        var family = await CreateSoloFamilyAsync(userId, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return MapFamily(family, 1);
@@ -271,6 +254,115 @@ public class FamilyService(IApplicationDbContext dbContext) : IFamilyService
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task DemoteToMemberAsync(
+        Guid familyId,
+        string targetUserId,
+        string actingUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var actingMembership = await dbContext.FamilyMembers
+            .FirstOrDefaultAsync(m =>
+                m.FamilyId == familyId &&
+                m.UserId == actingUserId,
+                cancellationToken);
+
+        if (actingMembership is null || actingMembership.Role != FamilyMemberRole.HeadOfHousehold)
+        {
+            throw new FamilyBusinessException("Bu işlemi yapmaya yetkiniz yok.");
+        }
+
+        if (actingUserId == targetUserId)
+        {
+            throw new FamilyBusinessException("Kendi rolünüzü değiştiremezsiniz");
+        }
+
+        var targetMembership = await dbContext.FamilyMembers
+            .FirstOrDefaultAsync(m =>
+                m.FamilyId == familyId &&
+                m.UserId == targetUserId,
+                cancellationToken);
+
+        if (targetMembership is null)
+        {
+            throw new FamilyBusinessException("Hedef kullanıcı bu ailede bulunamadı.");
+        }
+
+        if (targetMembership.Role != FamilyMemberRole.HeadOfHousehold)
+        {
+            throw new FamilyBusinessException("Kullanıcı aile reisi değil.");
+        }
+
+        targetMembership.Role = FamilyMemberRole.Member;
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RemoveMemberAsync(
+        Guid familyId,
+        string targetUserId,
+        string actingUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var actingMembership = await dbContext.FamilyMembers
+            .FirstOrDefaultAsync(m =>
+                m.FamilyId == familyId &&
+                m.UserId == actingUserId,
+                cancellationToken);
+
+        if (actingMembership is null || actingMembership.Role != FamilyMemberRole.HeadOfHousehold)
+        {
+            throw new FamilyBusinessException("Bu işlemi yapmaya yetkiniz yok.");
+        }
+
+        if (actingUserId == targetUserId)
+        {
+            throw new FamilyBusinessException("Kendinizi bu şekilde çıkaramazsınız");
+        }
+
+        var targetMembership = await dbContext.FamilyMembers
+            .FirstOrDefaultAsync(m =>
+                m.FamilyId == familyId &&
+                m.UserId == targetUserId,
+                cancellationToken);
+
+        if (targetMembership is null)
+        {
+            throw new FamilyBusinessException("Hedef kullanıcı bu ailede bulunamadı.");
+        }
+
+        dbContext.Remove(targetMembership);
+        await CreateSoloFamilyAsync(targetUserId, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task LeaveFamilyAsync(
+        string userId,
+        CancellationToken cancellationToken = default)
+    {
+        var membership = await dbContext.FamilyMembers
+            .Include(m => m.Family)
+            .ThenInclude(f => f.Members)
+            .FirstOrDefaultAsync(m => m.UserId == userId, cancellationToken);
+
+        if (membership is null)
+        {
+            throw new FamilyBusinessException("Aile üyeliği bulunamadı.");
+        }
+
+        if (membership.Role != FamilyMemberRole.Member)
+        {
+            throw new FamilyBusinessException("Evin reisi bu şekilde ayrılamaz");
+        }
+
+        if (membership.Family.Members.Count == 1)
+        {
+            throw new FamilyBusinessException("Zaten kendi tek kişilik ailenizdesiniz");
+        }
+
+        dbContext.Remove(membership);
+        await CreateSoloFamilyAsync(userId, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<FamilyDto?> GetMyFamilyAsync(string userId, CancellationToken cancellationToken = default)
     {
         var membership = await dbContext.FamilyMembers
@@ -335,6 +427,30 @@ public class FamilyService(IApplicationDbContext dbContext) : IFamilyService
                 r.Status,
                 r.CreatedAt))
             .ToListAsync(cancellationToken);
+    }
+
+    private async Task<Family> CreateSoloFamilyAsync(string userId, CancellationToken cancellationToken)
+    {
+        var family = new Family
+        {
+            Id = Guid.NewGuid(),
+            InviteCode = await GenerateUniqueInviteCodeAsync(cancellationToken),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var member = new FamilyMember
+        {
+            Id = Guid.NewGuid(),
+            FamilyId = family.Id,
+            UserId = userId,
+            Role = FamilyMemberRole.HeadOfHousehold,
+            JoinedAt = DateTime.UtcNow
+        };
+
+        dbContext.Add(family);
+        dbContext.Add(member);
+
+        return family;
     }
 
     private async Task<string> GenerateUniqueInviteCodeAsync(CancellationToken cancellationToken)
