@@ -302,7 +302,7 @@ https://github.com/canfehmi
 
 LinkedIn
 
-(Your LinkedIn URL)
+https://www.linkedin.com/in/fehmi-%C3%BCn-136542314/
 
 ---
 
