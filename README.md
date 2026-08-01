@@ -157,31 +157,6 @@ Frontend
 
 ---
 
-# 📸 Screenshots
-
-## Global Recipes
-
-(Add screenshot here)
-
----
-
-## Recipe Detail
-
-(Add screenshot here)
-
----
-
-## Family Management
-
-(Add screenshot here)
-
----
-
-## Personal Recipe Book
-
-(Add screenshot here)
-
----
 
 # 🚀 Getting Started
 
