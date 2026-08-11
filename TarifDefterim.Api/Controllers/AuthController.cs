@@ -292,7 +292,20 @@ public class AuthController(
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var user = await userManager.FindByIdAsync(userId!);
-        var roles = user is null ? [] : await userManager.GetRolesAsync(user);
-        return Ok(new { userId, roles });
+        if (user is null)
+        {
+            return NotFound();
+        }
+
+        var roles = await userManager.GetRolesAsync(user);
+        var hasPassword = await userManager.HasPasswordAsync(user);
+
+        return Ok(new
+        {
+            userId,
+            roles,
+            displayName = user.DisplayName,
+            hasPassword
+        });
     }
 }

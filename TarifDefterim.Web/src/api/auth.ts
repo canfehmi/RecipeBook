@@ -38,7 +38,17 @@ export async function resetPassword(
   await apiClient.post('/api/auth/reset-password', { userId, token, newPassword });
 }
 
-export async function getCurrentUser(): Promise<{ userId: string; roles: string[] }> {
-  const response = await apiClient.get<{ userId: string; roles: string[] }>('/api/auth/me');
+export async function getCurrentUser(): Promise<{
+  userId: string;
+  roles: string[];
+  displayName: string;
+  hasPassword: boolean;
+}> {
+  const response = await apiClient.get<{
+    userId: string;
+    roles: string[];
+    displayName: string;
+    hasPassword: boolean;
+  }>('/api/auth/me');
   return response.data;
 }

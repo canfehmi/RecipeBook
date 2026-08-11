@@ -9,11 +9,32 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lora:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <title>Tarif Defterim</title>
+    <link rel="stylesheet" href="/src/index.css" />
+    <style>
+      #app-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fbf7f0;
+        color: #6b5e58;
+        font-family: Inter, system-ui, sans-serif;
+        font-size: 0.875rem;
+      }
+
+      #root:not(.ready) {
+        visibility: hidden;
+      }
+    </style>
+    <!--app-head-->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <div id="app-loader">Yükleniyor...</div>
+    <div id="root"><!--app-html--></div>
+    <!--initial-data-->
+    <script type="module" src="/src/entry-client.tsx"></script>
   </body>
 </html>

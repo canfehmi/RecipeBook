@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using TarifDefterim.Application.Constants;
 using TarifDefterim.Application.Interfaces;
@@ -13,7 +14,8 @@ public class AccountEmailService(
     IApplicationDbContext dbContext,
     IEmailService emailService,
     UserManager<ApplicationUser> userManager,
-    IOptions<FrontendSettings> frontendOptions) : IAccountEmailService
+    IOptions<FrontendSettings> frontendOptions,
+    ILogger<AccountEmailService> logger) : IAccountEmailService
 {
     private readonly FrontendSettings _frontendSettings = frontendOptions.Value;
 
@@ -27,18 +29,31 @@ public class AccountEmailService(
 
         if (IsRateLimited(user.LastVerificationEmailSentAt))
         {
+            logger.LogInformation("Verification email rate limit active for user {UserId}", user.Id);
             return;
         }
 
         var token = SecureTokenGenerator.GenerateBase64UrlToken();
         user.EmailVerificationTokenHash = TokenHasher.Hash(token);
         user.EmailVerificationExpireDate = DateTimeOffset.UtcNow.Add(EmailTokenConstants.VerificationTokenLifetime);
-        user.LastVerificationEmailSentAt = DateTimeOffset.UtcNow;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var verificationLink = BuildVerificationLink(user.Id, token);
-        await emailService.SendVerificationEmailAsync(user, verificationLink, cancellationToken);
+
+        try
+        {
+            await emailService.SendVerificationEmailAsync(user, verificationLink, cancellationToken);
+            user.LastVerificationEmailSentAt = DateTimeOffset.UtcNow;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            logger.LogInformation("Verification email sent for user {UserId}", user.Id);
+        }
+        catch
+        {
+            ClearVerificationToken(user);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            throw;
+        }
     }
 
     public async Task<bool> VerifyEmailAsync(
@@ -73,29 +88,40 @@ public class AccountEmailService(
 
     public async Task SendPasswordResetEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        var normalizedEmail = NormalizeEmail(email);
-        var user = await dbContext.Users
-            .FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
-
+        var user = await userManager.FindByEmailAsync(email.Trim());
         if (user is null)
         {
+            logger.LogInformation("Password reset requested for an unregistered email address.");
             return;
         }
 
         if (IsRateLimited(user.LastPasswordResetEmailSentAt))
         {
+            logger.LogInformation("Password reset rate limit active for user {UserId}", user.Id);
             return;
         }
 
         var token = SecureTokenGenerator.GenerateBase64UrlToken();
         user.PasswordResetTokenHash = TokenHasher.Hash(token);
         user.PasswordResetExpireDate = DateTimeOffset.UtcNow.Add(EmailTokenConstants.PasswordResetTokenLifetime);
-        user.LastPasswordResetEmailSentAt = DateTimeOffset.UtcNow;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var resetLink = BuildPasswordResetLink(user.Id, token);
-        await emailService.SendPasswordResetEmailAsync(user, resetLink, cancellationToken);
+
+        try
+        {
+            await emailService.SendPasswordResetEmailAsync(user, resetLink, cancellationToken);
+            user.LastPasswordResetEmailSentAt = DateTimeOffset.UtcNow;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            logger.LogInformation("Password reset email sent for user {UserId}", user.Id);
+        }
+        catch
+        {
+            ClearPasswordResetToken(user);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            throw;
+        }
     }
 
     public async Task<(bool Success, string? ErrorMessage)> ResetPasswordAsync(
@@ -173,10 +199,5 @@ public class AccountEmailService(
     {
         var baseUrl = _frontendSettings.BaseUrl.TrimEnd('/');
         return $"{baseUrl}/reset-password?userId={Uri.EscapeDataString(userId)}&token={Uri.EscapeDataString(token)}";
-    }
-
-    private static string NormalizeEmail(string email)
-    {
-        return email.Trim().ToUpperInvariant();
     }
 }

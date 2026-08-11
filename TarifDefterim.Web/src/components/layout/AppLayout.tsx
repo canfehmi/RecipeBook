@@ -2,7 +2,7 @@ import { Link, Outlet } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
 
 export function AppLayout() {
-  const { isAuthenticated, isAdmin, logout } = useAuth();
+  const { isAuthenticated, isAdmin, isAuthReady, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-cream">
@@ -13,13 +13,21 @@ export function AppLayout() {
           </Link>
 
           <div className="flex items-center gap-3 text-sm">
-            {isAuthenticated ? (
+            {!isAuthReady ? (
+              <span className="text-muted">Yükleniyor...</span>
+            ) : isAuthenticated ? (
               <>
                 <Link
                   to="/my-recipes"
                   className="rounded-full px-3 py-1.5 text-ink transition hover:bg-cream"
                 >
                   Defterim
+                </Link>
+                <Link
+                  to="/account"
+                  className="rounded-full px-3 py-1.5 text-ink transition hover:bg-cream"
+                >
+                  Hesabım
                 </Link>
                 <Link
                   to="/family"

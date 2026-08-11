@@ -37,19 +37,32 @@ async function fetchAndStoreCurrentUser(
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem(AUTH_TOKEN_KEY));
+  const [token, setToken] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
-  const [isAuthReady, setIsAuthReady] = useState(() => !localStorage.getItem(AUTH_TOKEN_KEY));
+  const [isAuthReady, setIsAuthReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    const stored = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (stored) {
+      setToken(stored);
+    } else {
+      setIsAuthReady(true);
+    }
+  }, []);
+
   const storeAccessToken = useCallback((accessToken: string) => {
-    localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
+    }
     setToken(accessToken);
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+    }
     setToken(null);
     setCurrentUserId(null);
     setRoles([]);
@@ -90,7 +103,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     )
       .catch(() => {
         if (!cancelled) {
-          localStorage.removeItem(AUTH_TOKEN_KEY);
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem(AUTH_TOKEN_KEY);
+          }
           setToken(null);
           setCurrentUserId(null);
           setRoles([]);
@@ -148,7 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       currentUserId,
       roles,
       isAdmin: roles.includes('Admin'),
-      isAuthenticated: token !== null,
+      isAuthenticated: isAuthReady && token !== null,
       isAuthReady,
       isLoading,
       login,

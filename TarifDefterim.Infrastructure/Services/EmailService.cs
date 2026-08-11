@@ -3,10 +3,10 @@ using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using MimeKit.Utils;
 using TarifDefterim.Application.Interfaces;
 using TarifDefterim.Domain.Entities;
 using TarifDefterim.Infrastructure.Options;
-
 
 namespace TarifDefterim.Infrastructure.Services;
 
@@ -23,13 +23,21 @@ public class EmailService(
         string htmlBody,
         CancellationToken cancellationToken = default)
     {
+        await SendAsync(to, subject, htmlBody, plainTextBody: null, cancellationToken);
+    }
+
+    private async Task SendAsync(
+        string to,
+        string subject,
+        string htmlBody,
+        string? plainTextBody,
+        CancellationToken cancellationToken)
+    {
         using var client = new SmtpClient();
 
         try
         {
-            var secureSocketOptions = _mailSettings.UseSSL
-                ? SecureSocketOptions.SslOnConnect
-                : SecureSocketOptions.StartTls;
+            var secureSocketOptions = ResolveSecureSocketOptions(_mailSettings);
 
             await client.ConnectAsync(
                 _mailSettings.Host,
@@ -49,10 +57,15 @@ public class EmailService(
                 logger.LogInformation("SMTP kimlik doğrulama başarılı");
             }
 
-            var message = BuildMessage(to, subject, htmlBody);
+            var message = BuildMessage(to, subject, htmlBody, plainTextBody);
             await client.SendAsync(message, cancellationToken);
 
-            logger.LogInformation("Email gönderildi: {To}, {Subject}", to, subject);
+            logger.LogInformation(
+                "Email gönderildi: {To}, {Subject}, MessageId: {MessageId}, From: {From}",
+                to,
+                subject,
+                message.MessageId,
+                _mailSettings.From);
 
             await client.DisconnectAsync(true, cancellationToken);
 
@@ -80,10 +93,15 @@ public class EmailService(
             verificationLink,
             cancellationToken);
 
+        var plainTextBody = templateRenderer.RenderVerificationPlainText(
+            user.DisplayName,
+            verificationLink);
+
         await SendAsync(
             user.Email,
-            "Verify your email address",
+            "Tarifet - Email Adresinizi Doğrulayın",
             htmlBody,
+            plainTextBody,
             cancellationToken);
     }
 
@@ -102,20 +120,59 @@ public class EmailService(
             resetLink,
             cancellationToken);
 
+        var plainTextBody = templateRenderer.RenderPasswordResetPlainText(
+            user.DisplayName,
+            resetLink);
+
         await SendAsync(
             user.Email,
-            "Reset your password",
+            "Tarifet - Şifre Sıfırlama",
             htmlBody,
+            plainTextBody,
             cancellationToken);
     }
 
-    private MimeMessage BuildMessage(string to, string subject, string htmlBody)
+    private static SecureSocketOptions ResolveSecureSocketOptions(MailSettings settings)
+    {
+        return settings.Port switch
+        {
+            465 => SecureSocketOptions.SslOnConnect,
+            587 => settings.UseSSL
+                ? SecureSocketOptions.StartTls
+                : SecureSocketOptions.StartTlsWhenAvailable,
+            _ => settings.UseSSL
+                ? SecureSocketOptions.SslOnConnect
+                : SecureSocketOptions.StartTlsWhenAvailable
+        };
+    }
+
+    private MimeMessage BuildMessage(string to, string subject, string htmlBody, string? plainTextBody)
     {
         var message = new MimeMessage();
+        message.MessageId = MimeUtils.GenerateMessageId(_mailSettings.From.Split('@').LastOrDefault() ?? "studiowebia.com");
         message.From.Add(new MailboxAddress(_mailSettings.DisplayName, _mailSettings.From));
         message.To.Add(MailboxAddress.Parse(to));
         message.Subject = subject;
-        message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
+
+        var replyTo = string.IsNullOrWhiteSpace(_mailSettings.ReplyTo)
+            ? _mailSettings.From
+            : _mailSettings.ReplyTo;
+        message.ReplyTo.Add(MailboxAddress.Parse(replyTo));
+
+        var bodyBuilder = new BodyBuilder
+        {
+            HtmlBody = htmlBody,
+            TextBody = plainTextBody ?? StripHtml(htmlBody)
+        };
+
+        message.Body = bodyBuilder.ToMessageBody();
         return message;
+    }
+
+    private static string StripHtml(string html)
+    {
+        return System.Text.RegularExpressions.Regex.Replace(html, "<[^>]+>", " ")
+            .Replace("&nbsp;", " ")
+            .Trim();
     }
 }

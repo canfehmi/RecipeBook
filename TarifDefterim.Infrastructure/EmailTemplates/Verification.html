@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Email Verification</title>
+  <title>Email Doğrulama</title>
 </head>
 <body style="margin:0;padding:0;background-color:#faf7f2;font-family:Georgia,serif;color:#3d2c1e;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#faf7f2;padding:32px 16px;">
@@ -13,14 +13,15 @@
           <tr>
             <td>
               <h1 style="margin:0 0 16px;font-size:24px;color:#8b4513;">Tarifet</h1>
-              <p style="margin:0 0 16px;line-height:1.6;">Hello {{FullName}},</p>
-              <p style="margin:0 0 24px;line-height:1.6;">Please verify your email address by clicking the button below. This link expires in 24 hours.</p>
+              <p style="margin:0 0 16px;line-height:1.6;">Merhaba {{FullName}},</p>
+              <p style="margin:0 0 24px;line-height:1.6;">Tarifet hesabınızı kullanmaya başlamak için email adresinizi doğrulamanız gerekiyor. Aşağıdaki bağlantı 24 saat geçerlidir.</p>
               <p style="margin:0 0 24px;text-align:center;">
-                <a href="{{VerificationUrl}}" style="display:inline-block;background-color:#8b4513;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:bold;">Verify Email</a>
+                <a href="{{VerificationUrl}}" style="display:inline-block;background-color:#8b4513;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:bold;">Email Adresimi Doğrula</a>
               </p>
-              <p style="margin:0 0 16px;line-height:1.6;font-size:14px;color:#6b5344;">If the button does not work, copy and paste this link into your browser:</p>
+              <p style="margin:0 0 16px;line-height:1.6;font-size:14px;color:#6b5344;">Buton çalışmazsa bu bağlantıyı tarayıcınıza yapıştırın:</p>
               <p style="margin:0 0 24px;line-height:1.6;font-size:14px;word-break:break-all;color:#8b4513;">{{VerificationUrl}}</p>
-              <p style="margin:0;font-size:12px;color:#9a8b7e;">&copy; {{Year}} Tarifet</p>
+              <p style="margin:0 0 16px;line-height:1.6;font-size:14px;color:#6b5344;">Bu hesabı siz oluşturmadıysanız bu emaili yok sayabilirsiniz.</p>
+              <p style="margin:0;font-size:12px;color:#9a8b7e;">&copy; {{Year}} Tarifet · tarif@studiowebia.com</p>
             </td>
           </tr>
         </table>

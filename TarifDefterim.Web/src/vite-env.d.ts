@@ -9,9 +9,12 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
+import type { DehydratedState } from '@tanstack/react-query';
+
 declare global {
   interface Window {
     google: any;
+    __INITIAL_DATA__?: DehydratedState;
   }
 }
 
