@@ -6,14 +6,34 @@ import { renderToString } from 'react-dom/server';
 import { StaticRouter } from 'react-router';
 
 import { AppRoutes } from './App';
+import { getCategories } from './api/categories';
 import { getGlobalRecipeById, getGlobalRecipes } from './api/recipes';
 import type { Recipe } from './api/types';
 import { AuthProvider } from './features/auth/AuthContext';
 import { createQueryClient } from './queryClient';
 
 const logFile = path.resolve(process.cwd(), 'debug.log');
+const isProductionEnv = process.env.NODE_ENV === 'production';
+
 function debugLog(...args: unknown[]) {
+  if (isProductionEnv || process.env.VERCEL === '1') {
+    return;
+  }
+
   fs.appendFileSync(logFile, `[${new Date().toISOString()}] ${args.join(' ')}\n`);
+}
+
+function getSiteUrl() {
+  return (process.env.SITE_URL || 'https://atatarifi.com').replace(/\/$/, '');
+}
+
+function toAbsoluteUrl(pathname: string) {
+  const siteUrl = getSiteUrl();
+  if (!siteUrl) {
+    return pathname;
+  }
+
+  return `${siteUrl}${pathname.startsWith('/') ? pathname : `/${pathname}`}`;
 }
 
 export interface PageMeta {
@@ -21,12 +41,35 @@ export interface PageMeta {
   description: string;
   ogImage?: string;
   structuredData?: Record<string, unknown>;
+  canonicalPath?: string;
 }
 
-const defaultMeta: PageMeta = {
-  title: 'Tarif Defterim',
-  description: 'Aile tariflerinizi keşfedin, kendi defterinizi oluşturun.',
+const landingMeta: PageMeta = {
+  title: 'Ata Tarifi | Ailenizin tarifleri kaybolmasın',
+  description:
+    'Ata Tarifi ile kendi tarif defterinizi oluşturun, ailenizi davet edin ve yıllardır saklanan tariflerinizi tek bir yerde güvenle biriktirin.',
+  canonicalPath: '/',
+  structuredData: {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Ata Tarifi',
+    description:
+      'Ata Tarifi ile kendi tarif defterinizi oluşturun, ailenizi davet edin ve yıllardır saklanan tariflerinizi tek bir yerde güvenle biriktirin.',
+    inLanguage: 'tr-TR',
+    ...(getSiteUrl() ? { url: getSiteUrl() } : {}),
+  },
 };
+
+const globalRecipesMeta: PageMeta = {
+  title: 'Global Tarifler | Ata Tarifi',
+  description:
+    'Herkese açık global tarifleri keşfedin. Beğendiğiniz tarifleri kendi defterinize kopyalayın.',
+  canonicalPath: '/globalrecipes',
+};
+
+function parseRequestUrl(url: string) {
+  return new URL(url, 'http://ssr.local');
+}
 
 function buildRecipeMeta(recipe: Recipe): PageMeta {
   const description = `${recipe.title} tarifi — ${recipe.categoryName} kategorisinde, hazırlık ${recipe.prepTimeMinutes} dakika, pişirme ${recipe.cookTimeMinutes} dakika.`;
@@ -61,9 +104,10 @@ function buildRecipeMeta(recipe: Recipe): PageMeta {
   };
 
   return {
-    title: `${recipe.title} | Tarif Defterim`,
+    title: `${recipe.title} | Ata Tarifi`,
     description,
     ogImage: recipe.coverImageUrl ?? undefined,
+    canonicalPath: toAbsoluteUrl(`/recipes/${recipe.id}`),
     structuredData,
   };
 }
@@ -73,15 +117,41 @@ async function prefetchRouteData(
   url: string,
 ): Promise<PageMeta> {
   debugLog('[SSR] prefetchRouteData url:', JSON.stringify(url));
-  const recipeMatch = url.match(/^\/recipes\/([^/]+)$/);
+  const requestUrl = parseRequestUrl(url);
+  const pathname = requestUrl.pathname;
+  const recipeMatch = pathname.match(/^\/recipes\/([^/]+)$/);
   debugLog('[SSR] recipeMatch sonucu:', recipeMatch);
 
-  if (url === '/' || url === '') {
-    await queryClient.prefetchQuery({
-      queryKey: ['recipes', 'global', '', ''],
-      queryFn: () => getGlobalRecipes(),
-    });
-    return defaultMeta;
+  if (pathname === '/' || pathname === '') {
+    return landingMeta;
+  }
+
+  if (pathname === '/globalrecipes') {
+    const search = requestUrl.searchParams.get('search')?.trim() ?? '';
+    const categoryId = requestUrl.searchParams.get('category') ?? '';
+
+    await Promise.all([
+      queryClient.prefetchQuery({
+        queryKey: ['categories'],
+        queryFn: getCategories,
+      }),
+      queryClient.prefetchQuery({
+        queryKey: ['recipes', 'global', search, categoryId],
+        queryFn: () =>
+          getGlobalRecipes({
+            search: search || undefined,
+            categoryId: categoryId || undefined,
+          }),
+      }),
+    ]);
+
+    const canonicalSearch = requestUrl.searchParams.toString();
+    return {
+      ...globalRecipesMeta,
+      canonicalPath: toAbsoluteUrl(
+        canonicalSearch ? `/globalrecipes?${canonicalSearch}` : '/globalrecipes',
+      ),
+    };
   }
 
   if (recipeMatch) {
@@ -94,13 +164,14 @@ async function prefetchRouteData(
       return buildRecipeMeta(recipe);
     } catch {
       return {
-        title: 'Tarif Bulunamadı | Tarif Defterim',
+        title: 'Tarif Bulunamadı | Ata Tarifi',
         description: 'Aradığınız tarif bulunamadı.',
+        canonicalPath: toAbsoluteUrl(pathname),
       };
     }
   }
 
-  return defaultMeta;
+  return landingMeta;
 }
 
 export async function render(
