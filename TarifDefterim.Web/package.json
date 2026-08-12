@@ -9,7 +9,7 @@
     "dev:ssr": "node server.js",
     "build:client": "vite build --outDir dist/client",
     "build:server": "vite build --outDir dist/server --ssr src/entry-server.tsx",
-    "build": "npm run build:client && npm run build:server",
+    "build": "npm run build:client && npm run build:server && node scripts/copy-assets.mjs",
     "start": "node server.js",
     "preview": "node server.js"
   },

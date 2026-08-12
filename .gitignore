@@ -6,6 +6,9 @@
 
 TarifDefterim.Api/appsettings.json
 TarifDefterim.Api/appsettings.Development.json
+TarifDefterim.Api/appsettings.Production.json
+
+TarifDefterim.Web/public/assets
 
 
 

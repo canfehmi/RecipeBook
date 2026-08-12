@@ -7,15 +7,28 @@ import compression from 'compression';
 import express from 'express';
 import sirv from 'sirv';
 
+import {
+  buildRobotsTxt,
+  getConfiguredSiteUrl,
+  getSitemapXml,
+  getSiteUrlFromRequest,
+  toAbsoluteUrl,
+} from './server/seo.js';
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const logFile = path.resolve(__dirname, 'debug.log');
-function debugLog(...args) {
-  fs.appendFileSync(logFile, `[${new Date().toISOString()}] ${args.join(' ')}\n`);
-}
-
 const isProduction = process.env.NODE_ENV === 'production';
+const isVercel = process.env.VERCEL === '1';
 const port = process.env.PORT || 5173;
 const base = process.env.BASE || '/';
+
+function debugLog(...args) {
+  if (isProduction) {
+    return;
+  }
+
+  fs.appendFileSync(logFile, `[${new Date().toISOString()}] ${args.join(' ')}\n`);
+}
 
 const templateHtml = isProduction
   ? fs.readFileSync(path.resolve(__dirname, 'dist/client/index.html'), 'utf-8')
@@ -30,10 +43,18 @@ function escapeHtml(value) {
 }
 
 function buildHeadTags(meta) {
+  const siteUrl = getConfiguredSiteUrl();
   let tags = `<title>${escapeHtml(meta.title)}</title>`;
   tags += `<meta name="description" content="${escapeHtml(meta.description)}" />`;
   tags += `<meta property="og:title" content="${escapeHtml(meta.title)}" />`;
   tags += `<meta property="og:description" content="${escapeHtml(meta.description)}" />`;
+  tags += `<meta property="og:type" content="website" />`;
+  tags += `<meta property="og:locale" content="tr_TR" />`;
+  if (meta.canonicalPath) {
+    const canonicalUrl = toAbsoluteUrl(siteUrl, meta.canonicalPath);
+    tags += `<link rel="canonical" href="${escapeHtml(canonicalUrl)}" />`;
+    tags += `<meta property="og:url" content="${escapeHtml(canonicalUrl)}" />`;
+  }
   if (meta.ogImage) {
     tags += `<meta property="og:image" content="${escapeHtml(meta.ogImage)}" />`;
   }
@@ -57,17 +78,24 @@ function renderTemplate(template, { head = '', html = '', initialData = '' } = {
 
 function shouldSSR(url) {
   const pathname = url.split('?')[0];
-  return pathname === '/' || pathname === '' || /^\/recipes\/[^/]+$/.test(pathname);
+  return (
+    pathname === '/' ||
+    pathname === '' ||
+    pathname === '/globalrecipes' ||
+    /^\/recipes\/[^/]+$/.test(pathname)
+  );
 }
 
 const defaultMeta = {
-  title: 'Tarif Defterim',
-  description: 'Aile tariflerinizi keşfedin, kendi defterinizi oluşturun.',
+  title: 'Ata Tarifi | Ailenizin tarifleri kaybolmasın',
+  description:
+    'Ata Tarifi ile kendi tarif defterinizi oluşturun, ailenizi davet edin ve yıllardır saklanan tariflerinizi tek bir yerde güvenle biriktirin.',
+  canonicalPath: '/',
 };
 
 async function handleHtmlRequest(req, res, vite) {
-  const url = req.path;
-  debugLog('[EXPRESS] HTML isteği, req.path:', url, 'shouldSSR:', shouldSSR(url));
+  const url = req.originalUrl.split('#')[0];
+  debugLog('[EXPRESS] HTML isteği, url:', url, 'shouldSSR:', shouldSSR(url));
 
   let template = templateHtml;
   let render;
@@ -107,11 +135,32 @@ async function handleHtmlRequest(req, res, vite) {
     .end(document);
 }
 
-async function createServer() {
+async function createApp(httpServer) {
   const app = express();
   app.use(compression());
 
-  const httpServer = http.createServer(app);
+  app.get('/robots.txt', (req, res) => {
+    const siteUrl = getSiteUrlFromRequest(req);
+    res
+      .type('text/plain')
+      .set('Cache-Control', 'public, max-age=86400')
+      .send(buildRobotsTxt(siteUrl));
+  });
+
+  app.get('/sitemap.xml', async (req, res) => {
+    try {
+      const siteUrl = getSiteUrlFromRequest(req);
+      const xml = await getSitemapXml(siteUrl);
+      res
+        .type('application/xml')
+        .set('Cache-Control', 'public, max-age=3600')
+        .send(xml);
+    } catch (error) {
+      console.error('[SEO] sitemap.xml generation failed:', error);
+      res.status(500).type('text/plain').send('Sitemap could not be generated.');
+    }
+  });
+
   let vite;
 
   if (!isProduction) {
@@ -120,7 +169,7 @@ async function createServer() {
       configFile: path.resolve(__dirname, 'vite.config.ts'),
       server: {
         middlewareMode: true,
-        hmr: { server: httpServer },
+        hmr: httpServer ? { server: httpServer } : undefined,
       },
       appType: 'custom',
     });
@@ -152,9 +201,20 @@ async function createServer() {
     }
   });
 
+  return app;
+}
+
+let app;
+
+if (isVercel) {
+  app = await createApp();
+} else {
+  const httpServer = http.createServer();
+  app = await createApp(httpServer);
+  httpServer.on('request', app);
   httpServer.listen(port, () => {
     console.log(`SSR server (${isProduction ? 'production' : 'development'}) at http://localhost:${port}`);
   });
 }
 
-createServer();
+export default app;
