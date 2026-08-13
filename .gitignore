@@ -9,9 +9,8 @@ TarifDefterim.Api/appsettings.Development.json
 TarifDefterim.Api/appsettings.Production.json
 TarifDefterim.Api/appsettings.Production.example.json
 
-**/appsettings.*.json
-!**/appsettings.json
-!**/appsettings.Development.json
+# EF Core migration bundle
+**/efbundle.exe
 
 TarifDefterim.Web/public/assets
 
