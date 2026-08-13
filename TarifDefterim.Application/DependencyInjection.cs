@@ -12,6 +12,9 @@ public static class DependencyInjection
     {
         services.Configure<FrontendSettings>(configuration.GetSection(FrontendSettings.SectionName));
 
+        services.AddMemoryCache();
+        services.AddSingleton<IAuthExchangeStore, InMemoryAuthExchangeStore>();
+        services.AddScoped<IGoogleAuthService, GoogleAuthService>();
         services.AddScoped<IFamilyService, FamilyService>();
         services.AddScoped<IRecipeService, RecipeService>();
         services.AddScoped<ICategoryService, CategoryService>();

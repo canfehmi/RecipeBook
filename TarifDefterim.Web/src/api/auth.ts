@@ -6,6 +6,13 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
   return response.data;
 }
 
+export async function exchangeGoogleCode(code: string): Promise<LoginResponse> {
+  const response = await apiClient.get<LoginResponse>('/api/auth/exchange', {
+    params: { code },
+  });
+  return response.data;
+}
+
 export async function loginWithGoogle(idToken: string): Promise<LoginResponse> {
   const response = await apiClient.post<LoginResponse>('/api/auth/external/google', { idToken });
   return response.data;

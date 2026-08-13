@@ -12,6 +12,7 @@ import { AdminPageContentsPage } from './features/admin/AdminPageContentsPage';
 import { AdminRecipesPage } from './features/admin/AdminRecipesPage';
 import { AdminUsersPage } from './features/admin/AdminUsersPage';
 import { AccountSettingsPage } from './features/account/AccountSettingsPage';
+import { GoogleAuthCallbackPage } from './features/auth/GoogleAuthCallbackPage';
 import { LoginPage } from './features/auth/LoginPage';
 import { ConfirmEmailPage } from './features/auth/ConfirmEmailPage';
 import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage';
@@ -43,6 +44,7 @@ export function AppRoutes() {
         <Route path="globalrecipes" element={<GlobalRecipesRedirect />} />
         <Route path="recipes/:id" element={<RecipeDetailPage />} />
         <Route path="login" element={<LoginPage />} />
+        <Route path="auth/callback" element={<GoogleAuthCallbackPage />} />
         <Route path="register" element={<RegisterPage />} />
         <Route path="confirm-email" element={<ConfirmEmailPage />} />
         <Route path="forgot-password" element={<ForgotPasswordPage />} />

@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,8 +14,9 @@ public class AuthController(
     SignInManager<ApplicationUser> signInManager,
     IFamilyService familyService,
     IAccountEmailService accountEmailService,
-    IServiceScopeFactory serviceScopeFactory,
-    IConfiguration configuration) : ControllerBase
+    IGoogleAuthService googleAuthService,
+    IAuthExchangeStore authExchangeStore,
+    IServiceScopeFactory serviceScopeFactory) : ControllerBase
 {
     public record RegisterRequest(string Email, string Password, string DisplayName);
     public record RegisterResponse(string UserId, string Email, string DisplayName);
@@ -245,41 +245,30 @@ public class AuthController(
         [FromBody] ExternalLoginRequest request,
         CancellationToken cancellationToken)
     {
-        GoogleJsonWebSignature.Payload payload;
-
-        try
+        var authResult = await googleAuthService.AuthenticateAsync(request.IdToken, cancellationToken);
+        if (!authResult.Succeeded || authResult.User is null)
         {
-            payload = await GoogleJsonWebSignature.ValidateAsync(
-                request.IdToken,
-                new GoogleJsonWebSignature.ValidationSettings
-                {
-                    Audience = new[] { configuration["Authentication:Google:ClientId"]! }
-                });
-        }
-        catch (InvalidJwtException)
-        {
-            return BadRequest(new { message = "Geçersiz Google token." });
+            return BadRequest(new { message = authResult.ErrorMessage ?? "Geçersiz Google token." });
         }
 
-        var user = await userManager.FindByEmailAsync(payload.Email);
+        var principal = await signInManager.CreateUserPrincipalAsync(authResult.User);
+        return SignIn(principal, IdentityConstants.BearerScheme);
+    }
+
+    [HttpGet("exchange")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Exchange([FromQuery] string code)
+    {
+        if (string.IsNullOrWhiteSpace(code) || !authExchangeStore.TryTake(code, out var userId) || userId is null)
+        {
+            return BadRequest(new { message = "Geçersiz veya süresi dolmuş giriş kodu." });
+        }
+
+        var user = await userManager.FindByIdAsync(userId);
         if (user is null)
         {
-            user = new ApplicationUser
-            {
-                UserName = payload.Email,
-                Email = payload.Email,
-                EmailConfirmed = true,
-                DisplayName = payload.Name ?? payload.Email
-            };
-
-            var result = await userManager.CreateAsync(user);
-            if (!result.Succeeded)
-            {
-                return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
-            }
-
-            await userManager.AddLoginAsync(user, new UserLoginInfo("Google", payload.Subject, "Google"));
-            await familyService.CreateFamilyForNewUserAsync(user.Id, cancellationToken);
+            return BadRequest(new { message = "Kullanıcı bulunamadı." });
         }
 
         var principal = await signInManager.CreateUserPrincipalAsync(user);

@@ -1,43 +1,39 @@
-import { useCallback, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from './AuthContext';
+import { useEffect, useRef } from 'react';
 
 interface GoogleSignInButtonProps {
   onError?: (message: string) => void;
 }
+
+const RESIZE_DEBOUNCE_MS = 200;
 
 function getButtonWidth(container: HTMLElement): number | null {
   const width = Math.min(Math.floor(container.offsetWidth), 400);
   return width >= 40 ? width : null;
 }
 
+function getGoogleLoginUri(): string | null {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '');
+  if (!apiBaseUrl) {
+    return null;
+  }
+
+  return `${apiBaseUrl}/auth/google/callback`;
+}
+
 export function GoogleSignInButton({ onError }: GoogleSignInButtonProps) {
   const buttonRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
-  const { loginWithGoogleToken, isLoading } = useAuth();
-
-  const handleCredentialResponse = useCallback(
-    async (response: { credential?: string }) => {
-      if (!response.credential) {
-        onError?.('Google girişi tamamlanamadı.');
-        return;
-      }
-
-      try {
-        await loginWithGoogleToken(response.credential);
-        navigate('/');
-      } catch {
-        onError?.('Google ile giriş yapılamadı.');
-      }
-    },
-    [loginWithGoogleToken, navigate, onError],
-  );
+  const lastRenderedWidthRef = useRef<number | null>(null);
+  const resizeDebounceRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const loginUri = getGoogleLoginUri();
     const container = buttonRef.current;
 
-    if (!clientId || !container) {
+    if (!clientId || !loginUri || !container) {
+      if (!loginUri) {
+        onError?.('Google giriş adresi yapılandırılmamış.');
+      }
       return;
     }
 
@@ -47,6 +43,11 @@ export function GoogleSignInButton({ onError }: GoogleSignInButtonProps) {
         return;
       }
 
+      if (width === lastRenderedWidthRef.current && container.childElementCount > 0) {
+        return;
+      }
+
+      lastRenderedWidthRef.current = width;
       container.innerHTML = '';
       window.google.accounts.id.renderButton(container, {
         theme: 'outline',
@@ -59,10 +60,16 @@ export function GoogleSignInButton({ onError }: GoogleSignInButtonProps) {
       });
     };
 
+    const scheduleRenderButton = () => {
+      window.clearTimeout(resizeDebounceRef.current);
+      resizeDebounceRef.current = window.setTimeout(renderButton, RESIZE_DEBOUNCE_MS);
+    };
+
     const initialize = () => {
       window.google.accounts.id.initialize({
         client_id: clientId,
-        callback: handleCredentialResponse,
+        ux_mode: 'redirect',
+        login_uri: loginUri,
         locale: 'tr',
       });
       renderButton();
@@ -81,18 +88,17 @@ export function GoogleSignInButton({ onError }: GoogleSignInButtonProps) {
       }, 100);
     }
 
-    const resizeObserver = new ResizeObserver(() => {
-      renderButton();
-    });
+    const resizeObserver = new ResizeObserver(scheduleRenderButton);
     resizeObserver.observe(container);
 
     return () => {
       if (intervalId !== undefined) {
         window.clearInterval(intervalId);
       }
+      window.clearTimeout(resizeDebounceRef.current);
       resizeObserver.disconnect();
     };
-  }, [handleCredentialResponse]);
+  }, [onError]);
 
   if (!import.meta.env.VITE_GOOGLE_CLIENT_ID) {
     return null;
@@ -101,7 +107,7 @@ export function GoogleSignInButton({ onError }: GoogleSignInButtonProps) {
   return (
     <div
       ref={buttonRef}
-      className={`w-full min-w-0 ${isLoading ? 'pointer-events-none opacity-60' : ''}`}
+      className="w-full min-w-0"
       aria-label="Google ile giriş yap"
     />
   );

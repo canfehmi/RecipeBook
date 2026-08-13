@@ -21,6 +21,7 @@ interface AuthContextValue {
   isLoading: boolean;
   login: (data: LoginRequest) => Promise<void>;
   loginWithGoogleToken: (idToken: string) => Promise<void>;
+  completeGoogleExchange: (code: string) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
 }
@@ -148,6 +149,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [storeAccessToken],
   );
 
+  const completeGoogleExchange = useCallback(
+    async (code: string) => {
+      setIsLoading(true);
+      try {
+        const response = await authApi.exchangeGoogleCode(code);
+        storeAccessToken(response.accessToken);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [storeAccessToken],
+  );
+
   const register = useCallback(async (data: RegisterRequest) => {
     setIsLoading(true);
     try {
@@ -168,10 +182,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       login,
       loginWithGoogleToken,
+      completeGoogleExchange,
       register,
       logout,
     }),
-    [token, currentUserId, roles, isAuthReady, isLoading, login, loginWithGoogleToken, register, logout],
+    [token, currentUserId, roles, isAuthReady, isLoading, login, loginWithGoogleToken, completeGoogleExchange, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
