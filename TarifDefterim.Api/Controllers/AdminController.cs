@@ -42,6 +42,25 @@ public class AdminController(
         }
     }
 
+    [HttpPost("recipes/bulk-import")]
+    [ProducesResponseType(typeof(BulkImportRecipesResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> BulkImportGlobalRecipes(
+        [FromBody] IReadOnlyList<BulkImportRecipeItemDto> items,
+        CancellationToken cancellationToken)
+    {
+        if (items is null || items.Count == 0)
+        {
+            return BadRequest(new { message = "İçe aktarılacak tarif bulunamadı." });
+        }
+
+        var result = await recipeService.BulkImportGlobalRecipesAsync(
+            GetUserId(),
+            items,
+            cancellationToken);
+        return Ok(result);
+    }
+
     [HttpPut("recipes/{id:guid}")]
     [ProducesResponseType(typeof(RecipeDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

@@ -4,6 +4,7 @@ import { AdminRoute } from './components/layout/AdminRoute';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { AdminAddRecipePage } from './features/admin/AdminAddRecipePage';
+import { AdminBulkImportRecipesPage } from './features/admin/AdminBulkImportRecipesPage';
 import { AdminCategoriesPage } from './features/admin/AdminCategoriesPage';
 import { AdminDashboardPage } from './features/admin/AdminDashboardPage';
 import { AdminFamiliesPage } from './features/admin/AdminFamiliesPage';
@@ -75,6 +76,7 @@ export function AppRoutes() {
           <Route path="admin/recipes" element={<AdminRecipesPage />} />
           <Route path="admin/recipes/add" element={<AdminAddRecipePage />} />
           <Route path="admin/recipes/:id/edit" element={<AdminAddRecipePage />} />
+          <Route path="admin/toplu-tarif-ekle" element={<AdminBulkImportRecipesPage />} />
           <Route path="admin/categories" element={<AdminCategoriesPage />} />
           <Route path="admin/families" element={<AdminFamiliesPage />} />
           <Route path="admin/users" element={<AdminUsersPage />} />

@@ -60,4 +60,9 @@ public interface IRecipeService
     Task DeleteGlobalRecipeAsync(
         Guid recipeId,
         CancellationToken cancellationToken = default);
+
+    Task<BulkImportRecipesResultDto> BulkImportGlobalRecipesAsync(
+        string adminUserId,
+        IReadOnlyList<BulkImportRecipeItemDto> items,
+        CancellationToken cancellationToken = default);
 }

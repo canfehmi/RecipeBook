@@ -53,3 +53,28 @@ public record UpdateRecipeDto(
     int Servings,
     Guid CategoryId,
     IReadOnlyList<CreateRecipeIngredientDto> Ingredients);
+
+public record BulkImportIngredientDto(
+    string Name,
+    decimal? Quantity,
+    string? Unit);
+
+public record BulkImportRecipeItemDto(
+    string Title,
+    string Category,
+    int PrepMinutes,
+    int CookMinutes,
+    int Servings,
+    IReadOnlyList<BulkImportIngredientDto> Ingredients,
+    IReadOnlyList<string> Steps);
+
+public record BulkImportCategoryNotFoundDto(string Title, string Category);
+
+public record BulkImportValidationFailureDto(string Title, string Reason);
+
+public record BulkImportRecipesResultDto(
+    int TotalCount,
+    int SuccessCount,
+    IReadOnlyList<BulkImportCategoryNotFoundDto> SkippedCategoryNotFound,
+    IReadOnlyList<string> SkippedDuplicateTitle,
+    IReadOnlyList<BulkImportValidationFailureDto> FailedValidation);

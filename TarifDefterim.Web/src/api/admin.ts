@@ -1,5 +1,14 @@
 import { apiClient } from './client';
-import type { AdminFamily, AdminUser, Category, CreateRecipe, Recipe, UpdateRecipe } from './types';
+import type {
+  AdminFamily,
+  AdminUser,
+  BulkImportRecipeItem,
+  BulkImportRecipesResult,
+  Category,
+  CreateRecipe,
+  Recipe,
+  UpdateRecipe,
+} from './types';
 
 export async function getAdminFamilies(): Promise<AdminFamily[]> {
   const response = await apiClient.get<AdminFamily[]>('/api/admin/families');
@@ -21,6 +30,16 @@ export async function unlockUser(userId: string): Promise<void> {
 
 export async function createGlobalRecipe(data: CreateRecipe): Promise<Recipe> {
   const response = await apiClient.post<Recipe>('/api/admin/recipes', data);
+  return response.data;
+}
+
+export async function bulkImportGlobalRecipes(
+  items: BulkImportRecipeItem[],
+): Promise<BulkImportRecipesResult> {
+  const response = await apiClient.post<BulkImportRecipesResult>(
+    '/api/admin/recipes/bulk-import',
+    items,
+  );
   return response.data;
 }
 

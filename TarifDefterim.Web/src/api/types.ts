@@ -83,6 +83,38 @@ export interface UpdateRecipe {
   ingredients: CreateRecipeIngredient[];
 }
 
+export interface BulkImportRecipeItem {
+  title: string;
+  category: string;
+  prepMinutes: number;
+  cookMinutes: number;
+  servings: number;
+  ingredients: {
+    name: string;
+    quantity: number | null;
+    unit: string | null;
+  }[];
+  steps: string[];
+}
+
+export interface BulkImportCategoryNotFound {
+  title: string;
+  category: string;
+}
+
+export interface BulkImportValidationFailure {
+  title: string;
+  reason: string;
+}
+
+export interface BulkImportRecipesResult {
+  totalCount: number;
+  successCount: number;
+  skippedCategoryNotFound: BulkImportCategoryNotFound[];
+  skippedDuplicateTitle: string[];
+  failedValidation: BulkImportValidationFailure[];
+}
+
 export interface Family {
   id: string;
   inviteCode: string;

@@ -472,6 +472,153 @@ public class RecipeService(IApplicationDbContext dbContext) : IRecipeService
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<BulkImportRecipesResultDto> BulkImportGlobalRecipesAsync(
+        string adminUserId,
+        IReadOnlyList<BulkImportRecipeItemDto> items,
+        CancellationToken cancellationToken = default)
+    {
+        var categories = await dbContext.Categories.ToListAsync(cancellationToken);
+        var existingTitles = await dbContext.Recipes
+            .Where(r => r.Scope == RecipeScope.Global)
+            .Select(r => r.Title.ToLower())
+            .ToListAsync(cancellationToken);
+        var existingTitleSet = new HashSet<string>(existingTitles);
+
+        var skippedCategoryNotFound = new List<BulkImportCategoryNotFoundDto>();
+        var skippedDuplicateTitle = new List<string>();
+        var failedValidation = new List<BulkImportValidationFailureDto>();
+        var successCount = 0;
+
+        foreach (var item in items)
+        {
+            var displayTitle = item.Title?.Trim() ?? string.Empty;
+            var validationError = ValidateBulkImportItem(item);
+
+            if (validationError is not null)
+            {
+                failedValidation.Add(new BulkImportValidationFailureDto(displayTitle, validationError));
+                continue;
+            }
+
+            var category = categories.FirstOrDefault(c =>
+                string.Equals(c.Name, item.Category.Trim(), StringComparison.OrdinalIgnoreCase));
+
+            if (category is null)
+            {
+                skippedCategoryNotFound.Add(new BulkImportCategoryNotFoundDto(
+                    displayTitle,
+                    item.Category.Trim()));
+                continue;
+            }
+
+            var normalizedTitle = displayTitle.ToLower();
+            if (existingTitleSet.Contains(normalizedTitle))
+            {
+                skippedDuplicateTitle.Add(displayTitle);
+                continue;
+            }
+
+            try
+            {
+                var createDto = MapBulkImportItemToCreateRecipeDto(item, category.Id);
+                await CreateGlobalRecipeAsync(adminUserId, createDto, cancellationToken);
+                existingTitleSet.Add(normalizedTitle);
+                successCount++;
+            }
+            catch (FamilyBusinessException ex)
+            {
+                failedValidation.Add(new BulkImportValidationFailureDto(displayTitle, ex.Message));
+            }
+        }
+
+        return new BulkImportRecipesResultDto(
+            items.Count,
+            successCount,
+            skippedCategoryNotFound,
+            skippedDuplicateTitle,
+            failedValidation);
+    }
+
+    private static string? ValidateBulkImportItem(BulkImportRecipeItemDto item)
+    {
+        if (string.IsNullOrWhiteSpace(item.Title))
+        {
+            return "Tarif başlığı zorunludur.";
+        }
+
+        if (string.IsNullOrWhiteSpace(item.Category))
+        {
+            return "Kategori zorunludur.";
+        }
+
+        if (item.PrepMinutes < 0)
+        {
+            return "Hazırlık süresi 0 veya daha büyük olmalıdır.";
+        }
+
+        if (item.CookMinutes < 0)
+        {
+            return "Pişirme süresi 0 veya daha büyük olmalıdır.";
+        }
+
+        if (item.Servings < 1)
+        {
+            return "Porsiyon sayısı en az 1 olmalıdır.";
+        }
+
+        var validIngredients = (item.Ingredients ?? Array.Empty<BulkImportIngredientDto>())
+            .Where(i => !string.IsNullOrWhiteSpace(i.Name))
+            .ToList();
+
+        if (validIngredients.Count == 0)
+        {
+            return "En az bir malzeme girilmelidir.";
+        }
+
+        var validSteps = (item.Steps ?? Array.Empty<string>())
+            .Select(step => step.Trim())
+            .Where(step => step.Length > 0)
+            .ToList();
+
+        if (validSteps.Count == 0)
+        {
+            return "En az bir hazırlık adımı girilmelidir.";
+        }
+
+        return null;
+    }
+
+    private static CreateRecipeDto MapBulkImportItemToCreateRecipeDto(
+        BulkImportRecipeItemDto item,
+        Guid categoryId)
+    {
+        var ingredients = (item.Ingredients ?? Array.Empty<BulkImportIngredientDto>())
+            .Where(i => !string.IsNullOrWhiteSpace(i.Name))
+            .Select((ingredient, index) => new CreateRecipeIngredientDto(
+                ingredient.Name.Trim(),
+                ingredient.Quantity,
+                ingredient.Unit?.Trim() ?? string.Empty,
+                index))
+            .ToList();
+
+        var steps = string.Join(
+            '\n',
+            (item.Steps ?? Array.Empty<string>())
+                .Select(step => step.Trim())
+                .Where(step => step.Length > 0));
+
+        return new CreateRecipeDto(
+            item.Title.Trim(),
+            item.PrepMinutes,
+            item.CookMinutes,
+            steps,
+            CoverImageUrl: null,
+            item.Servings,
+            categoryId,
+            SourceGlobalRecipeId: null,
+            ingredients);
+    }
+
     private static readonly System.Linq.Expressions.Expression<
         Func<Recipe, RecipeDto>> MapRecipe = r => new RecipeDto(
         r.Id,

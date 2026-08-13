@@ -30,6 +30,9 @@ export function AdminLayout() {
             <NavLink to="/admin/recipes" className={navLinkClass}>
               Tarifler
             </NavLink>
+            <NavLink to="/admin/toplu-tarif-ekle" className={navLinkClass}>
+              Toplu Tarif İçe Aktar
+            </NavLink>
             <NavLink to="/admin/categories" className={navLinkClass}>
               Kategoriler
             </NavLink>
