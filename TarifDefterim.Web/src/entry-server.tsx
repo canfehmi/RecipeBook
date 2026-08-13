@@ -60,13 +60,6 @@ const landingMeta: PageMeta = {
   },
 };
 
-const globalRecipesMeta: PageMeta = {
-  title: 'Global Tarifler | Ata Tarifi',
-  description:
-    'Herkese açık global tarifleri keşfedin. Beğendiğiniz tarifleri kendi defterinize kopyalayın.',
-  canonicalPath: '/globalrecipes',
-};
-
 function parseRequestUrl(url: string) {
   return new URL(url, 'http://ssr.local');
 }
@@ -122,11 +115,7 @@ async function prefetchRouteData(
   const recipeMatch = pathname.match(/^\/recipes\/([^/]+)$/);
   debugLog('[SSR] recipeMatch sonucu:', recipeMatch);
 
-  if (pathname === '/' || pathname === '') {
-    return landingMeta;
-  }
-
-  if (pathname === '/globalrecipes') {
+  if (pathname === '/' || pathname === '' || pathname === '/globalrecipes') {
     const search = requestUrl.searchParams.get('search')?.trim() ?? '';
     const categoryId = requestUrl.searchParams.get('category') ?? '';
 
@@ -147,10 +136,8 @@ async function prefetchRouteData(
 
     const canonicalSearch = requestUrl.searchParams.toString();
     return {
-      ...globalRecipesMeta,
-      canonicalPath: toAbsoluteUrl(
-        canonicalSearch ? `/globalrecipes?${canonicalSearch}` : '/globalrecipes',
-      ),
+      ...landingMeta,
+      canonicalPath: toAbsoluteUrl(canonicalSearch ? `/?${canonicalSearch}` : '/'),
     };
   }
 

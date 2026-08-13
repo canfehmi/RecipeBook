@@ -65,7 +65,7 @@ function RecipeContent({
 
       <div className="space-y-4">
         <div className="flex flex-wrap items-start gap-3">
-          <h1 className="font-heading text-4xl font-semibold text-ink">{recipe.title}</h1>
+          <h1 className="break-words font-heading text-3xl font-semibold text-ink sm:text-4xl">{recipe.title}</h1>
           {showPendingBadge && recipe.status === RecipeStatus.PendingApproval && (
             <span className="badge mt-1 px-4 py-1.5 text-sm">Onay Bekliyor</span>
           )}
@@ -74,7 +74,7 @@ function RecipeContent({
         {isPendingRestricted ? (
           <div className="card border-secondary-bg bg-secondary-bg/30 p-6">
             <p className="leading-relaxed text-ink">
-              Bu tarif henüz evin reisi tarafından onaylanmadı. Onaylandığında tüm detaylarını
+              Bu tarif henüz aile büyüğü tarafından onaylanmadı. Onaylandığında tüm detaylarını
               burada görebilirsiniz.
             </p>
           </div>
@@ -327,7 +327,7 @@ export function RecipeDetailPage() {
   const isPendingActionPending = approveMutation.isPending || rejectMutation.isPending;
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-3xl min-w-0">
       <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
         <Link to={backLink} className="btn-secondary inline-flex px-4 py-1.5">
           {backLabel}

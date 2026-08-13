@@ -73,8 +73,8 @@ export function RegisterPage() {
 
   if (registeredEmail) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="card w-full max-w-md p-8 text-center">
+      <div className="flex min-h-[60vh] w-full min-w-0 items-center justify-center">
+        <div className="card w-full min-w-0 max-w-md p-6 sm:p-8 text-center">
           <p className="mb-3 text-4xl" aria-hidden="true">
             ✉️
           </p>
@@ -110,8 +110,8 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="card w-full max-w-md p-8">
+    <div className="flex min-h-[60vh] w-full min-w-0 items-center justify-center">
+      <div className="card w-full min-w-0 max-w-md p-6 sm:p-8">
         <h1 className="mb-6 text-center font-heading text-2xl font-semibold text-ink">Kayıt Ol</h1>
 
         <GoogleSignInButton onError={setSubmitError} />

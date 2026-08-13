@@ -14,6 +14,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Recipe> Recipes => Set<Recipe>();
     public DbSet<RecipeIngredient> RecipeIngredients => Set<RecipeIngredient>();
+    public DbSet<PageContent> PageContents => Set<PageContent>();
 
     IQueryable<ApplicationUser> IApplicationDbContext.Users => Users;
     IQueryable<Family> IApplicationDbContext.Families => Families;
@@ -22,6 +23,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     IQueryable<Category> IApplicationDbContext.Categories => Categories;
     IQueryable<Recipe> IApplicationDbContext.Recipes => Recipes;
     IQueryable<RecipeIngredient> IApplicationDbContext.RecipeIngredients => RecipeIngredients;
+    IQueryable<PageContent> IApplicationDbContext.PageContents => PageContents;
 
     void IApplicationDbContext.Add<TEntity>(TEntity entity) => Set<TEntity>().Add(entity);
     void IApplicationDbContext.Remove<TEntity>(TEntity entity) => Set<TEntity>().Remove(entity);
@@ -160,6 +162,28 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .WithMany(r => r.Ingredients)
                 .HasForeignKey(i => i.RecipeId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<PageContent>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+
+            entity.Property(p => p.Slug)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.HasIndex(p => p.Slug)
+                .IsUnique();
+
+            entity.Property(p => p.Title)
+                .IsRequired()
+                .HasMaxLength(300);
+
+            entity.Property(p => p.ContentHtml)
+                .IsRequired();
+
+            entity.Property(p => p.UpdatedAt)
+                .IsRequired();
         });
     }
 }

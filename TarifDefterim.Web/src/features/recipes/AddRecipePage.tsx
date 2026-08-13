@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { Link, useLocation, useMatch, useNavigate } from 'react-router-dom';
 import { getCategories } from '../../api/categories';
@@ -37,7 +37,7 @@ const emptyDefaultValues: AddRecipeFormValues = {
   servings: 1,
   categoryId: '',
   coverImageUrl: null,
-  ingredients: [{ name: '', amount: 0, unit: '' }],
+  ingredients: [],
 };
 
 function buildDefaultValues(prefill?: Recipe): AddRecipeFormValues {
@@ -50,7 +50,7 @@ function buildDefaultValues(prefill?: Recipe): AddRecipeFormValues {
       ? [...prefill.ingredients]
           .sort((a, b) => a.sortOrder - b.sortOrder)
           .map(({ name, amount, unit }) => ({ name, amount, unit }))
-      : [{ name: '', amount: 0, unit: '' }];
+      : [];
 
   return {
     title: prefill.title,
@@ -89,11 +89,63 @@ function buildSubmitPayload(data: AddRecipeFormValues): UpdateRecipe {
 const inputClass = 'input-field';
 const labelClass = 'label-field';
 
+interface DraftIngredient {
+  name: string;
+  amount: string;
+  unit: string;
+}
+
+const emptyDraftIngredient: DraftIngredient = {
+  name: '',
+  amount: '',
+  unit: '',
+};
+
+function formatIngredientLabel(name: string, amount: number, unit: string): string {
+  const trimmedUnit = unit.trim();
+  const hasAmount = Number.isFinite(amount) && amount > 0;
+  const hasUnit = trimmedUnit.length > 0;
+
+  if (!hasAmount && !hasUnit) {
+    return name;
+  }
+
+  const amountPart = hasAmount ? String(amount) : '';
+  const detail = [amountPart, trimmedUnit].filter(Boolean).join(' ');
+  return `${name} — ${detail}`;
+}
+
+function parseDraftAmount(value: string): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+}
+
+function buildIngredientsForSubmit(
+  committed: IngredientFormRow[],
+  draft: DraftIngredient,
+): IngredientFormRow[] {
+  const ingredients = [...committed];
+  const draftName = draft.name.trim();
+
+  if (draftName) {
+    ingredients.push({
+      name: draftName,
+      amount: parseDraftAmount(draft.amount),
+      unit: draft.unit.trim(),
+    });
+  }
+
+  return ingredients;
+}
+
 export function AddRecipePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [draftIngredient, setDraftIngredient] = useState<DraftIngredient>(emptyDraftIngredient);
+  const [draftError, setDraftError] = useState<string | null>(null);
+  const draftNameInputRef = useRef<HTMLInputElement>(null);
 
   const editMatch = useMatch({ path: '/my-recipes/:id/edit', end: true });
   const editRecipeId = editMatch?.params.id;
@@ -137,6 +189,8 @@ export function AddRecipePage() {
   useEffect(() => {
     if (formSource) {
       reset(buildDefaultValues(formSource));
+      setDraftIngredient(emptyDraftIngredient);
+      setDraftError(null);
     }
   }, [formSource, reset]);
 
@@ -146,6 +200,7 @@ export function AddRecipePage() {
   });
 
   const coverImageUrl = watch('coverImageUrl');
+  const committedIngredients = watch('ingredients');
 
   const uploadMutation = useMutation({
     mutationFn: uploadImage,
@@ -173,6 +228,38 @@ export function AddRecipePage() {
   const isSaving = createMutation.isPending || updateMutation.isPending;
   const saveError = createMutation.error ?? updateMutation.error;
 
+  const clearDraftIngredient = () => {
+    setDraftIngredient(emptyDraftIngredient);
+    setDraftError(null);
+  };
+
+  const addDraftIngredient = () => {
+    const name = draftIngredient.name.trim();
+    if (!name) {
+      setDraftError('Malzeme adı gerekli.');
+      draftNameInputRef.current?.focus();
+      return false;
+    }
+
+    append({
+      name,
+      amount: parseDraftAmount(draftIngredient.amount),
+      unit: draftIngredient.unit.trim(),
+    });
+    clearDraftIngredient();
+    draftNameInputRef.current?.focus();
+    return true;
+  };
+
+  const handleDraftKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== 'Enter') {
+      return;
+    }
+
+    event.preventDefault();
+    addDraftIngredient();
+  };
+
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -182,12 +269,18 @@ export function AddRecipePage() {
 
   const onSubmit = (data: AddRecipeFormValues) => {
     setSubmitError(null);
+    setDraftError(null);
 
-    const payload = buildSubmitPayload(data);
+    const ingredients = buildIngredientsForSubmit(data.ingredients, draftIngredient);
+    const payload = buildSubmitPayload({ ...data, ingredients });
 
     if (payload.ingredients.length === 0) {
       setSubmitError('En az bir malzeme eklemelisiniz.');
       return;
+    }
+
+    if (draftIngredient.name.trim()) {
+      clearDraftIngredient();
     }
 
     if (isEditMode && editRecipeId) {
@@ -202,8 +295,8 @@ export function AddRecipePage() {
   };
 
   const onInvalid = () => {
-    const filledIngredients = watch('ingredients').filter((item) => item.name.trim());
-    if (filledIngredients.length === 0) {
+    const ingredients = buildIngredientsForSubmit(watch('ingredients'), draftIngredient);
+    if (ingredients.filter((item) => item.name.trim()).length === 0) {
       setSubmitError('En az bir malzeme eklemelisiniz.');
     }
   };
@@ -340,51 +433,91 @@ export function AddRecipePage() {
         </div>
 
         <div>
-          <div className="mb-2 flex items-center justify-between">
-            <label className={labelClass}>Malzemeler</label>
+          <label className={labelClass}>Malzemeler</label>
+
+          {fields.length > 0 && (
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {fields.map((field, index) => {
+                const ingredient = committedIngredients[index];
+                if (!ingredient) {
+                  return null;
+                }
+
+                return (
+                  <li
+                    key={field.id}
+                    className="inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-cream py-1.5 pl-4 pr-2 text-sm text-ink"
+                  >
+                    <span className="min-w-0 break-words">
+                      {formatIngredientLabel(
+                        ingredient.name,
+                        ingredient.amount,
+                        ingredient.unit,
+                      )}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => remove(index)}
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-red-50 hover:text-red-600"
+                      aria-label={`${ingredient.name} malzemesini sil`}
+                    >
+                      ×
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          <div className={`space-y-3 ${fields.length > 0 ? 'mt-4' : 'mt-3'}`}>
+            <div className="flex flex-wrap items-start gap-2 sm:flex-nowrap">
+              <input
+                ref={draftNameInputRef}
+                type="text"
+                placeholder="Malzeme adı"
+                value={draftIngredient.name}
+                onChange={(event) => {
+                  setDraftIngredient((current) => ({ ...current, name: event.target.value }));
+                  if (draftError) {
+                    setDraftError(null);
+                  }
+                }}
+                onKeyDown={handleDraftKeyDown}
+                className={`min-w-0 flex-1 ${inputClass}`}
+              />
+              <input
+                type="number"
+                step="any"
+                min={0}
+                placeholder="Miktar"
+                value={draftIngredient.amount}
+                onChange={(event) =>
+                  setDraftIngredient((current) => ({ ...current, amount: event.target.value }))
+                }
+                onKeyDown={handleDraftKeyDown}
+                className={`w-24 ${inputClass}`}
+              />
+              <input
+                type="text"
+                placeholder="Birim"
+                value={draftIngredient.unit}
+                onChange={(event) =>
+                  setDraftIngredient((current) => ({ ...current, unit: event.target.value }))
+                }
+                onKeyDown={handleDraftKeyDown}
+                className={`w-24 ${inputClass}`}
+              />
+            </div>
+
             <button
               type="button"
-              onClick={() => append({ name: '', amount: 0, unit: '' })}
-              className="text-sm font-medium text-accent hover:text-accent-dark"
+              onClick={addDraftIngredient}
+              className="btn-secondary w-full border-accent/30 bg-secondary-bg/60 px-4 py-2.5 text-accent hover:bg-secondary-bg sm:w-auto"
             >
               + Malzeme Ekle
             </button>
-          </div>
 
-          <div className="space-y-3">
-            {fields.map((field, index) => (
-              <div key={field.id} className="flex flex-wrap items-start gap-2 sm:flex-nowrap">
-                <input
-                  type="text"
-                  placeholder="Malzeme adı"
-                  className={`min-w-0 flex-1 ${inputClass}`}
-                  {...register(`ingredients.${index}.name` as const)}
-                />
-                <input
-                  type="number"
-                  step="any"
-                  min={0}
-                  placeholder="Miktar"
-                  className={`w-24 ${inputClass}`}
-                  {...register(`ingredients.${index}.amount` as const, { valueAsNumber: true })}
-                />
-                <input
-                  type="text"
-                  placeholder="Birim"
-                  className={`w-24 ${inputClass}`}
-                  {...register(`ingredients.${index}.unit` as const)}
-                />
-                {fields.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => remove(index)}
-                    className="rounded-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-                  >
-                    Sil
-                  </button>
-                )}
-              </div>
-            ))}
+            {draftError && <p className="text-sm text-red-600">{draftError}</p>}
           </div>
         </div>
 

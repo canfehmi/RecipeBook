@@ -17,6 +17,7 @@ public static class DependencyInjection
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IAccountEmailService, AccountEmailService>();
+        services.AddScoped<IPageContentService, PageContentService>();
         return services;
     }
 }

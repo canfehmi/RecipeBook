@@ -278,7 +278,7 @@ export function FamilyMembersPage() {
           <div className="flex flex-wrap items-center gap-4">
             <div className="rounded-2xl border border-border bg-cream px-6 py-4">
               <p className="text-sm text-muted">Davet Kodu</p>
-              <p className="font-heading text-2xl font-semibold tracking-widest text-ink">
+              <p className="break-all font-heading text-2xl font-semibold tracking-widest text-ink">
                 {familyQuery.data.inviteCode}
               </p>
             </div>
@@ -305,7 +305,7 @@ export function FamilyMembersPage() {
                   <span className="font-medium text-ink">{member.displayName}</span>
                   {member.role === FamilyMemberRole.HeadOfHousehold ? (
                     <span className="rounded-full bg-accent/15 px-3 py-1 text-xs font-medium text-accent">
-                      Evin Reisi
+                      Aile Büyüğü
                     </span>
                   ) : (
                     <span className="badge">Aile Üyesi</span>
@@ -344,7 +344,7 @@ export function FamilyMembersPage() {
                         disabled={promoteMutation.isPending || isMemberActionPending}
                         className="btn-secondary px-4 py-1.5 text-xs"
                       >
-                        Evin Reisi Yap
+                        Aile Büyüğü Yap
                       </button>
                     )}
 
@@ -373,7 +373,7 @@ export function FamilyMembersPage() {
       <section className="card p-6">
         <h2 className="font-heading mb-4 text-xl font-semibold text-ink">Aileye Katıl</h2>
         <form onSubmit={handleJoin} className="flex flex-wrap items-end gap-3">
-          <div className="min-w-[200px] flex-1">
+          <div className="min-w-0 flex-1">
             <label htmlFor="inviteCode" className="label-field">
               Davet Kodu
             </label>

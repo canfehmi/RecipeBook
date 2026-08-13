@@ -81,7 +81,7 @@ export function MyRecipesPage() {
 
               <div className="p-5">
                 <div className="mb-2 flex items-start justify-between gap-2">
-                  <h2 className="font-heading text-lg font-semibold text-ink">{recipe.title}</h2>
+                  <h2 className="min-w-0 break-words font-heading text-lg font-semibold text-ink">{recipe.title}</h2>
                   {recipe.status === RecipeStatus.PendingApproval && (
                     <span className="badge shrink-0">Onay Bekliyor</span>
                   )}

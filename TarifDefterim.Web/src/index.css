@@ -44,10 +44,47 @@
   }
 
   .input-field {
-    @apply w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20;
+    @apply w-full max-w-full min-w-0 rounded-lg border border-border bg-card px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20;
   }
 
   .label-field {
     @apply mb-1 block text-sm font-medium text-ink;
+  }
+
+  .prose-legal :where(p, ul, ol, h2, h3) {
+    @apply mb-4;
+  }
+
+  .prose-legal :where(h2, h3) {
+    font-family: var(--font-serif);
+    @apply font-semibold text-ink;
+  }
+
+  .prose-legal h2 {
+    @apply text-xl;
+  }
+
+  .prose-legal h3 {
+    @apply text-lg;
+  }
+
+  .prose-legal ul {
+    @apply list-disc space-y-2 pl-5;
+  }
+
+  .prose-legal ol {
+    @apply list-decimal space-y-2 pl-5;
+  }
+
+  .prose-legal a {
+    @apply break-all text-accent hover:text-accent-dark;
+  }
+
+  .prose-legal strong {
+    @apply font-semibold text-ink;
+  }
+
+  .prose-legal em {
+    @apply text-muted;
   }
 }

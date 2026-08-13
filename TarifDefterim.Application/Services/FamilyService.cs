@@ -236,7 +236,7 @@ public class FamilyService(IApplicationDbContext dbContext) : IFamilyService
 
         if (targetMembership.Role == FamilyMemberRole.HeadOfHousehold)
         {
-            throw new FamilyBusinessException("Kullanıcı zaten aile reisi.");
+            throw new FamilyBusinessException("Kullanıcı zaten aile büyüğü.");
         }
 
         var headCount = await dbContext.FamilyMembers
@@ -247,7 +247,7 @@ public class FamilyService(IApplicationDbContext dbContext) : IFamilyService
 
         if (headCount >= MaxHeadsOfHousehold)
         {
-            throw new FamilyBusinessException("Bu ailede en fazla iki aile reisi olabilir.");
+            throw new FamilyBusinessException("Bu ailede en fazla iki aile büyüğü olabilir.");
         }
 
         targetMembership.Role = FamilyMemberRole.HeadOfHousehold;
@@ -289,7 +289,7 @@ public class FamilyService(IApplicationDbContext dbContext) : IFamilyService
 
         if (targetMembership.Role != FamilyMemberRole.HeadOfHousehold)
         {
-            throw new FamilyBusinessException("Kullanıcı aile reisi değil.");
+            throw new FamilyBusinessException("Kullanıcı aile büyüğü değil.");
         }
 
         targetMembership.Role = FamilyMemberRole.Member;
@@ -350,7 +350,7 @@ public class FamilyService(IApplicationDbContext dbContext) : IFamilyService
 
         if (membership.Role != FamilyMemberRole.Member)
         {
-            throw new FamilyBusinessException("Evin reisi bu şekilde ayrılamaz");
+            throw new FamilyBusinessException("Aile büyüğü bu şekilde ayrılamaz");
         }
 
         if (membership.Family.Members.Count == 1)

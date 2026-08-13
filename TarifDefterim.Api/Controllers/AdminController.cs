@@ -16,6 +16,7 @@ public class AdminController(
     IRecipeService recipeService,
     ICategoryService categoryService,
     IAdminService adminService,
+    IPageContentService pageContentService,
     UserManager<ApplicationUser> userManager) : ControllerBase
 {
     public record UpdateCategoryRequest(string Name);
@@ -160,6 +161,33 @@ public class AdminController(
 
         await userManager.SetLockoutEndDateAsync(user, null);
         return NoContent();
+    }
+
+    [HttpGet("page-content")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllPageContents(CancellationToken cancellationToken)
+    {
+        var pages = await pageContentService.GetAllAsync(cancellationToken);
+        return Ok(pages);
+    }
+
+    [HttpPut("page-content/{slug}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdatePageContent(
+        string slug,
+        [FromBody] UpdatePageContentDto dto,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var page = await pageContentService.UpdateAsync(slug, dto, cancellationToken);
+            return Ok(page);
+        }
+        catch (FamilyBusinessException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     private string GetUserId() =>

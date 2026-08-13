@@ -28,6 +28,7 @@ public static class DependencyInjection
 
         services.Configure<MailSettings>(configuration.GetSection(MailSettings.SectionName));
         services.AddSingleton<EmailTemplateRenderer>();
+        services.AddSingleton<IHtmlContentSanitizer, HtmlSanitizerService>();
         services.AddScoped<IEmailService, EmailService>();
 
         return services;

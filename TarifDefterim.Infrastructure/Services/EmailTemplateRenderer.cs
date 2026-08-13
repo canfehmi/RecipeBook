@@ -25,14 +25,14 @@ public class EmailTemplateRenderer
         return $"""
             Merhaba {fullName},
 
-            Tarifet hesabınızı kullanmaya başlamak için email adresinizi doğrulamanız gerekiyor.
+            Ata Tarifi hesabınızı kullanmaya başlamak için email adresinizi doğrulamanız gerekiyor.
 
             Doğrulama bağlantısı (24 saat geçerlidir):
             {verificationUrl}
 
             Bu hesabı siz oluşturmadıysanız bu emaili yok sayabilirsiniz.
 
-            Tarifet
+            Ata Tarifi
             tarif@studiowebia.com
             """;
     }
@@ -54,14 +54,14 @@ public class EmailTemplateRenderer
         return $"""
             Merhaba {fullName},
 
-            Tarifet hesabınız için şifre sıfırlama talebi aldık.
+            Ata Tarifi hesabınız için şifre sıfırlama talebi aldık.
 
             Sıfırlama bağlantısı (1 saat geçerlidir):
             {resetUrl}
 
             Bu talebi siz yapmadıysanız bu emaili yok sayabilirsiniz.
 
-            Tarifet
+            Ata Tarifi
             tarif@studiowebia.com
             """;
     }

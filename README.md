@@ -1,16 +1,16 @@
-# 🍽️ Tarifet
+# 🍽️ Ata Tarifi
 
 > A modern recipe management platform where users can build their own private recipe book, save global recipes and collaborate with family members.
 
-![GitHub last commit](https://img.shields.io/github/last-commit/USERNAME/Tarifet)
-![GitHub repo size](https://img.shields.io/github/repo-size/USERNAME/Tarifet)
-![GitHub stars](https://img.shields.io/github/stars/USERNAME/Tarifet?style=social)
+![GitHub last commit](https://img.shields.io/github/last-commit/USERNAME/AtaTarifi)
+![GitHub repo size](https://img.shields.io/github/repo-size/USERNAME/AtaTarifi)
+![GitHub stars](https://img.shields.io/github/stars/USERNAME/AtaTarifi?style=social)
 
 ---
 
 # 📖 About
 
-Tarifet is not just another recipe application.
+Ata Tarifi is not just another recipe application.
 
 It is a personal and family-oriented recipe management platform that allows users to securely store their recipes, build their own digital recipe book, and collaborate with family members through a shared recipe collection.
 
@@ -60,7 +60,7 @@ Private recipes are only visible to their owner.
 
 ## 👨‍👩‍👧‍👦 Family System
 
-One of the core features of Tarifet.
+One of the core features of Ata Tarifi.
 
 Users can
 
@@ -137,7 +137,7 @@ Features include
 # 📂 Architecture
 
 ```
-Tarifet
+Ata Tarifi
 
 ├── Domain
 ├── Application
@@ -163,7 +163,7 @@ Frontend
 ## Clone the repository
 
 ```bash
-git clone https://github.com/USERNAME/Tarifet.git
+git clone https://github.com/USERNAME/AtaTarifi.git
 ```
 
 Backend
@@ -254,7 +254,7 @@ Mail Settings
 
 # 🎯 Project Goals
 
-Tarifet aims to provide a modern digital cookbook where users can
+Ata Tarifi aims to provide a modern digital cookbook where users can
 
 - Preserve family recipes
 - Build a personal recipe archive
@@ -265,7 +265,7 @@ Tarifet aims to provide a modern digital cookbook where users can
 
 # 📈 Future Vision
 
-Tarifet is planned to become more than a recipe application.
+Ata Tarifi is planned to become more than a recipe application.
 
 Future releases will include
 

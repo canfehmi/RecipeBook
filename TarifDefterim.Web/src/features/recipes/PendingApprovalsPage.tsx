@@ -207,7 +207,7 @@ export function PendingApprovalsPage() {
     return (
       <div className="card flex flex-col items-center justify-center py-16 text-center">
         <p className="font-heading text-xl font-semibold text-ink">Bu sayfayı görüntüleme yetkiniz yok</p>
-        <p className="mt-2 text-sm text-muted">Yalnızca evin reisi onay bekleyen tarifleri görebilir.</p>
+        <p className="mt-2 text-sm text-muted">Yalnızca aile büyüğü onay bekleyen tarifleri görebilir.</p>
       </div>
     );
   }

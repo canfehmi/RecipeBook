@@ -99,7 +99,7 @@ public class EmailService(
 
         await SendAsync(
             user.Email,
-            "Tarifet - Email Adresinizi Doğrulayın",
+            "Ata Tarifi - Email Adresinizi Doğrulayın",
             htmlBody,
             plainTextBody,
             cancellationToken);
@@ -126,7 +126,7 @@ public class EmailService(
 
         await SendAsync(
             user.Email,
-            "Tarifet - Şifre Sıfırlama",
+            "Ata Tarifi - Şifre Sıfırlama",
             htmlBody,
             plainTextBody,
             cancellationToken);

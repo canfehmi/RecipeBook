@@ -3,7 +3,7 @@ import { getAdminFamilies } from '../../api/admin';
 import { FamilyMemberRole } from '../../api/types';
 
 function roleLabel(role: number): string {
-  return role === FamilyMemberRole.HeadOfHousehold ? 'Aile Reisi' : 'Üye';
+  return role === FamilyMemberRole.HeadOfHousehold ? 'Aile Büyüğü' : 'Üye';
 }
 
 export function AdminFamiliesPage() {

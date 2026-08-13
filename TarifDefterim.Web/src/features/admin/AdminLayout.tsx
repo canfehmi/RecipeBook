@@ -39,6 +39,9 @@ export function AdminLayout() {
             <NavLink to="/admin/users" className={navLinkClass}>
               Kullanıcılar
             </NavLink>
+            <NavLink to="/admin/icerikler" className={navLinkClass}>
+              İçerikler
+            </NavLink>
           </nav>
         </aside>
 

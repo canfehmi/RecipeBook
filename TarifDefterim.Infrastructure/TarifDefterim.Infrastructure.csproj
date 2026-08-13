@@ -28,6 +28,8 @@
 
     </PackageReference>
 
+    <PackageReference Include="HtmlSanitizer" Version="9.0.889" />
+
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.10" />
 
   </ItemGroup>

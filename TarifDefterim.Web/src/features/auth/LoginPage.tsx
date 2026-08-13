@@ -99,8 +99,8 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="card w-full max-w-md p-8">
+    <div className="flex min-h-[60vh] w-full min-w-0 items-center justify-center">
+      <div className="card w-full min-w-0 max-w-md p-6 sm:p-8">
         <h1 className="mb-6 text-center font-heading text-2xl font-semibold text-ink">Giriş Yap</h1>
 
         <GoogleSignInButton onError={setSubmitError} />
@@ -123,7 +123,7 @@ export function LoginPage() {
           </div>
 
           <div>
-            <div className="mb-1 flex items-center justify-between">
+            <div className="mb-1 flex min-w-0 flex-wrap items-center justify-between gap-2">
               <label htmlFor="password" className="label-field mb-0">
                 Şifre
               </label>

@@ -66,7 +66,6 @@ function formatLastMod(value) {
 export function buildRobotsTxt(siteUrl) {
   return `User-agent: *
 Allow: /
-Allow: /globalrecipes
 Allow: /recipes/
 
 Disallow: /admin
@@ -98,8 +97,7 @@ async function fetchGlobalRecipes(apiBaseUrl) {
 
 export function buildSitemapXml(siteUrl, recipes) {
   const staticEntries = [
-    { loc: `${siteUrl}/`, changefreq: 'weekly', priority: '1.0' },
-    { loc: `${siteUrl}/globalrecipes`, changefreq: 'daily', priority: '0.9' },
+    { loc: `${siteUrl}/`, changefreq: 'daily', priority: '1.0' },
   ];
 
   const recipeEntries = recipes.map((recipe) => ({

@@ -12,6 +12,7 @@ public interface IApplicationDbContext
     IQueryable<Category> Categories { get; }
     IQueryable<Recipe> Recipes { get; }
     IQueryable<RecipeIngredient> RecipeIngredients { get; }
+    IQueryable<PageContent> PageContents { get; }
 
     void Add<TEntity>(TEntity entity) where TEntity : class;
     void Remove<TEntity>(TEntity entity) where TEntity : class;
