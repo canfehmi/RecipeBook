@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="Ata Tarifi">
+  <rect width="180" height="180" rx="36" fill="#c2703d"/>
+  <path
+    fill="#fffefb"
+    d="M45 42c0-4.97 4.03-9 9-9h33.75V147H54c-4.97 0-9-4.03-9-9V42zm56.25 0V147H135c4.97 0 9-4.03 9-9V51c0-4.97-4.03-9-9-9h-33.75z"
+  />
+  <path fill="#f5edd6" d="M101.25 33v114" stroke="#a85a2e" stroke-width="3"/>
+</svg>
