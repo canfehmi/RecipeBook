@@ -291,6 +291,16 @@ export function FamilyMembersPage() {
 
       <section className="card p-6">
         <h2 className="font-heading mb-4 text-xl font-semibold text-ink">Aile Üyeleri</h2>
+        <div className="mb-5 flex gap-3 rounded-2xl border border-border bg-secondary-bg/40 px-4 py-3 text-sm leading-relaxed text-muted">
+          <span className="shrink-0 text-base" aria-hidden="true">
+            ℹ️
+          </span>
+          <p>
+            {isHeadOfHousehold
+              ? 'Aile büyükleri olarak katılım isteklerini ve tarif eklemelerini onaylayabilirsiniz. Aile üyeleri tarif ekleyebilir; onay sizde kalır.'
+              : 'Aile büyükleri, aileye katılım isteklerini ve tarif eklemelerini onaylayabilir. Siz tarif ekleyebilir, onay aile büyüklerine düşer.'}
+          </p>
+        </div>
         <ul className="space-y-3">
           {membersQuery.data?.map((member) => {
             const isSelf = member.userId === currentUserId;

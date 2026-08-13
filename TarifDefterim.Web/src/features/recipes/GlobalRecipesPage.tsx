@@ -32,27 +32,46 @@ function parsePage(value: string | null): number {
 }
 
 function GuestHero() {
+  const steps = [
+    {
+      step: '1',
+      title: 'Kayıt olun',
+      description: 'Ücretsiz hesap oluşturun ve kendi aile tarif defterinize sahip olun.',
+    },
+    {
+      step: '2',
+      title: 'Davet kodunuzu paylaşın',
+      description: 'Ailenize özel davet kodunuzu gönderin; birlikte aynı deftere katılın.',
+    },
+    {
+      step: '3',
+      title: 'Tarifleri birlikte biriktirin',
+      description: 'Aile üyeleri tarif ekler, büyükler onaylar — hepsi tek yerde kalır.',
+    },
+  ];
+
   return (
     <>
       <header className="relative -mx-4 mb-10 overflow-hidden border-b border-border bg-gradient-to-br from-card via-cream to-secondary-bg px-4 sm:-mx-0 sm:rounded-2xl sm:border">
         <div className="grid gap-10 py-10 lg:grid-cols-2 lg:items-center lg:py-14">
           <div>
             <p className="mb-4 inline-flex rounded-full bg-secondary-bg px-3 py-1 text-xs font-medium text-secondary-text">
-              Aile tarifleriniz için
+              Ailenizin ortak tarif defteri
             </p>
             <h1 className="font-heading text-4xl font-semibold leading-tight text-ink sm:text-5xl">
-              Ailenizin tarifleri kaybolmasın.
+              Ailenizin tariflerini nesiller boyu tek yerde saklayın.
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted">
-              Ata Tarifi ile kendi tarif defterinizi oluşturun, ailenizi davet edin ve yıllardır
-              saklanan tariflerinizi tek bir yerde güvenle biriktirin.
+              Sıradan tarif sitelerinden farklı olarak Ata Tarifi, ailenizin ortak bir defter
+              oluşturmasını sağlar. Anneannenizin çorbasından pazar pilavına — yıllardır
+              saklanan tarifler kaybolmaz, birlikte birikir.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/register" className="btn-primary px-6 py-2.5">
-                Ücretsiz Başla
+                Aile Defterinizi Oluşturun
               </Link>
-              <a href="#global-recipes-list" className="btn-secondary px-6 py-2.5">
-                Tarifleri Keşfet
+              <a href="#how-it-works" className="btn-secondary px-6 py-2.5">
+                Nasıl Çalışır?
               </a>
             </div>
           </div>
@@ -91,6 +110,33 @@ function GuestHero() {
           </div>
         </div>
       </header>
+
+      <section
+        id="how-it-works"
+        className="-mx-4 mb-10 border-y border-border bg-card px-4 py-10 sm:-mx-0 sm:rounded-2xl sm:border sm:py-12"
+        aria-labelledby="how-it-works-title"
+      >
+        <h2 id="how-it-works-title" className="font-heading text-3xl font-semibold text-ink">
+          3 adımda aile tarif defteriniz
+        </h2>
+        <p className="mt-3 max-w-2xl text-lg leading-relaxed text-muted">
+          Tek başınıza tarif toplamak yerine tüm ailenizle ortak bir defter oluşturun.
+        </p>
+        <ol className="mt-8 grid gap-4 sm:grid-cols-3">
+          {steps.map((item) => (
+            <li
+              key={item.step}
+              className="flex min-w-0 flex-col rounded-2xl border border-border bg-cream p-5 sm:p-6"
+            >
+              <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-accent text-sm font-semibold text-white">
+                {item.step}
+              </span>
+              <h3 className="font-heading text-lg font-semibold text-ink">{item.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{item.description}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
 
       <section className="mb-10" aria-labelledby="why-ata-tarifi">
         <h2 id="why-ata-tarifi" className="font-heading text-3xl font-semibold text-ink">

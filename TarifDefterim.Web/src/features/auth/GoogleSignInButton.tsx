@@ -12,6 +12,11 @@ function getButtonWidth(container: HTMLElement): number | null {
 }
 
 function getGoogleLoginUri(): string | null {
+  const explicitLoginUri = import.meta.env.VITE_GOOGLE_LOGIN_URI?.trim().replace(/\/$/, '');
+  if (explicitLoginUri) {
+    return explicitLoginUri;
+  }
+
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '');
   if (!apiBaseUrl) {
     return null;

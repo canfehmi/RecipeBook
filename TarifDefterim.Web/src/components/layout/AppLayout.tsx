@@ -34,9 +34,10 @@ function MenuIcon({ open }: { open: boolean }) {
 export function AppLayout() {
   const { isAuthenticated, isAdmin, isAuthReady, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const recipesLink = isAuthReady && isAuthenticated ? '/my-recipes' : '/';
 
   const mobileLinks: MobileNavLink[] = (() => {
-    const links: MobileNavLink[] = [{ to: '/', label: 'Tarifler' }];
+    const links: MobileNavLink[] = [{ to: recipesLink, label: 'Tarifler' }];
 
     if (!isAuthReady) {
       return links;
@@ -72,7 +73,7 @@ export function AppLayout() {
 
           <div className="hidden items-center gap-3 text-sm md:flex">
             <Link
-              to="/"
+              to={recipesLink}
               className="rounded-full px-3 py-1.5 text-ink transition hover:bg-cream"
             >
               Tarifler

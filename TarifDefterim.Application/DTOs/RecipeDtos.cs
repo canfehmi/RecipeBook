@@ -5,13 +5,13 @@ namespace TarifDefterim.Application.DTOs;
 public record RecipeIngredientDto(
     Guid Id,
     string Name,
-    decimal Amount,
+    decimal? Amount,
     string Unit,
     int SortOrder);
 
 public record CreateRecipeIngredientDto(
     string Name,
-    decimal Amount,
+    decimal? Amount,
     string Unit,
     int SortOrder);
 

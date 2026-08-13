@@ -10,7 +10,8 @@ TarifDefterim.Api/appsettings.Production.json
 
 TarifDefterim.Web/public/assets
 
-
+# EF Core migration bundle
+**/efbundle.exe
 
 # dotenv files
 .env

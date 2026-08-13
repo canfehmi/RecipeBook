@@ -8,6 +8,7 @@ import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { createRecipe, deleteRecipe, approveRecipe, getGlobalRecipeById, getMyRecipes, rejectRecipe } from '../../api/recipes';
 import { FamilyMemberRole, RecipeStatus, type CreateRecipe, type Recipe } from '../../api/types';
 import { useAuth } from '../auth/AuthContext';
+import { formatIngredientDisplay } from '../../utils/formatIngredient';
 
 function recipeToCreatePayload(recipe: Recipe): CreateRecipe {
   return {
@@ -23,7 +24,7 @@ function recipeToCreatePayload(recipe: Recipe): CreateRecipe {
       .sort((a, b) => a.sortOrder - b.sortOrder)
       .map((item, index) => ({
         name: item.name,
-        amount: item.amount,
+        amount: item.amount ?? null,
         unit: item.unit,
         sortOrder: index,
       })),
@@ -93,9 +94,7 @@ function RecipeContent({
                 {sortedIngredients.map((ingredient) => (
                   <li key={ingredient.id} className="flex items-center gap-3 text-ink">
                     <span className="h-2 w-2 shrink-0 rounded-full bg-accent" />
-                    <span>
-                      {ingredient.amount} {ingredient.unit} {ingredient.name}
-                    </span>
+                    <span>{formatIngredientDisplay(ingredient.name, ingredient.amount, ingredient.unit)}</span>
                   </li>
                 ))}
               </ul>

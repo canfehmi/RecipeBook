@@ -7,6 +7,7 @@ import { approveRecipe, getPendingApprovalRecipes, rejectRecipe } from '../../ap
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { FamilyMemberRole, type Recipe } from '../../api/types';
 import { useAuth } from '../auth/AuthContext';
+import { formatIngredientDisplay } from '../../utils/formatIngredient';
 
 function parseSteps(steps: string): string[] {
   return steps
@@ -80,7 +81,7 @@ function PendingRecipeCard({
                 <li key={ingredient.id} className="flex items-center gap-2 text-sm text-ink">
                   <span className="h-2 w-2 shrink-0 rounded-full bg-accent" />
                   <span>
-                    {ingredient.amount} {ingredient.unit} {ingredient.name}
+                    {formatIngredientDisplay(ingredient.name, ingredient.amount, ingredient.unit)}
                   </span>
                 </li>
               ))}

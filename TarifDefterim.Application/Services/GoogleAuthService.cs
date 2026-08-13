@@ -36,6 +36,12 @@ public class GoogleAuthService(
             return GoogleAuthResult.Failed("Geçersiz Google token.");
         }
 
+        var existingGoogleUser = await userManager.FindByLoginAsync("Google", payload.Subject);
+        if (existingGoogleUser is not null)
+        {
+            return GoogleAuthResult.Success(existingGoogleUser);
+        }
+
         var user = await userManager.FindByEmailAsync(payload.Email);
         if (user is null)
         {
@@ -56,6 +62,26 @@ public class GoogleAuthService(
 
             await userManager.AddLoginAsync(user, new UserLoginInfo("Google", payload.Subject, "Google"));
             await familyService.CreateFamilyForNewUserAsync(user.Id, cancellationToken);
+            return GoogleAuthResult.Success(user);
+        }
+
+        var linkedLogins = await userManager.GetLoginsAsync(user);
+        var googleLogin = linkedLogins.FirstOrDefault(login => login.LoginProvider == "Google");
+        if (googleLogin is not null && googleLogin.ProviderKey != payload.Subject)
+        {
+            return GoogleAuthResult.Failed("Bu email adresi farklı bir Google hesabına bağlı.");
+        }
+
+        if (googleLogin is null)
+        {
+            var linkResult = await userManager.AddLoginAsync(
+                user,
+                new UserLoginInfo("Google", payload.Subject, "Google"));
+            if (!linkResult.Succeeded)
+            {
+                return GoogleAuthResult.Failed(
+                    string.Join(' ', linkResult.Errors.Select(error => error.Description)));
+            }
         }
 
         return GoogleAuthResult.Success(user);

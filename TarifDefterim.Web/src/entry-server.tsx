@@ -11,6 +11,7 @@ import { getGlobalRecipeById, getGlobalRecipes } from './api/recipes';
 import type { Recipe } from './api/types';
 import { AuthProvider } from './features/auth/AuthContext';
 import { createQueryClient } from './queryClient';
+import { formatIngredientDisplay } from './utils/formatIngredient';
 
 const logFile = path.resolve(process.cwd(), 'debug.log');
 const isProductionEnv = process.env.NODE_ENV === 'production';
@@ -84,7 +85,7 @@ function buildRecipeMeta(recipe: Recipe): PageMeta {
     recipeYield: `${recipe.servings} porsiyon`,
     recipeIngredient: recipe.ingredients
       .sort((a, b) => a.sortOrder - b.sortOrder)
-      .map((i) => `${i.amount} ${i.unit} ${i.name}`),
+      .map((i) => formatIngredientDisplay(i.name, i.amount, i.unit)),
     recipeInstructions: recipe.steps
       .split('\n')
       .map((s) => s.trim())

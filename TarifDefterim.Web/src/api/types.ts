@@ -29,14 +29,14 @@ export const FamilyJoinRequestStatus = {
 export interface RecipeIngredient {
   id: string;
   name: string;
-  amount: number;
+  amount: number | null;
   unit: string;
   sortOrder: number;
 }
 
 export interface CreateRecipeIngredient {
   name: string;
-  amount: number;
+  amount: number | null;
   unit: string;
   sortOrder: number;
 }

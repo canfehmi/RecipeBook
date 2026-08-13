@@ -7,10 +7,15 @@ import { getCategories } from '../../api/categories';
 import { uploadImage } from '../../api/images';
 import { createRecipe, getMyRecipes, updateRecipe } from '../../api/recipes';
 import type { CreateRecipeIngredient, Recipe, UpdateRecipe } from '../../api/types';
+import {
+  formatIngredientLabel,
+  normalizeIngredientAmount,
+  parseDraftAmount,
+} from '../../utils/formatIngredient';
 
 interface IngredientFormRow {
   name: string;
-  amount: number;
+  amount: number | null;
   unit: string;
 }
 
@@ -49,7 +54,11 @@ function buildDefaultValues(prefill?: Recipe): AddRecipeFormValues {
     prefill.ingredients.length > 0
       ? [...prefill.ingredients]
           .sort((a, b) => a.sortOrder - b.sortOrder)
-          .map(({ name, amount, unit }) => ({ name, amount, unit }))
+          .map(({ name, amount, unit }) => ({
+            name,
+            amount: normalizeIngredientAmount(amount),
+            unit,
+          }))
       : [];
 
   return {
@@ -100,25 +109,6 @@ const emptyDraftIngredient: DraftIngredient = {
   amount: '',
   unit: '',
 };
-
-function formatIngredientLabel(name: string, amount: number, unit: string): string {
-  const trimmedUnit = unit.trim();
-  const hasAmount = Number.isFinite(amount) && amount > 0;
-  const hasUnit = trimmedUnit.length > 0;
-
-  if (!hasAmount && !hasUnit) {
-    return name;
-  }
-
-  const amountPart = hasAmount ? String(amount) : '';
-  const detail = [amountPart, trimmedUnit].filter(Boolean).join(' ');
-  return `${name} — ${detail}`;
-}
-
-function parseDraftAmount(value: string): number {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-}
 
 function buildIngredientsForSubmit(
   committed: IngredientFormRow[],
