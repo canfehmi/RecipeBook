@@ -17,6 +17,7 @@ public record CreateRecipeIngredientDto(
 
 public record RecipeDto(
     Guid Id,
+    string Slug,
     string Title,
     int PrepTimeMinutes,
     int CookTimeMinutes,

@@ -25,14 +25,14 @@ public class RecipesController(IRecipeService recipeService) : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpGet("global/{id:guid}")]
+    [HttpGet("{idOrSlug}")]
     [ProducesResponseType(typeof(RecipeDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetGlobalRecipeById(
-        Guid id,
+        string idOrSlug,
         CancellationToken cancellationToken)
     {
-        var recipe = await recipeService.GetGlobalRecipeByIdAsync(id, cancellationToken);
+        var recipe = await recipeService.GetGlobalRecipeByIdAsync(idOrSlug, cancellationToken);
         return recipe is null ? NotFound() : Ok(recipe);
     }
 

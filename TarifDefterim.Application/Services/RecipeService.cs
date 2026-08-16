@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TarifDefterim.Application.DTOs;
 using TarifDefterim.Application.Exceptions;
+using TarifDefterim.Application.Helpers;
 using TarifDefterim.Application.Interfaces;
 using TarifDefterim.Domain.Entities;
 using TarifDefterim.Domain.Enums;
@@ -35,11 +36,20 @@ public class RecipeService(IApplicationDbContext dbContext) : IRecipeService
     }
 
     public async Task<RecipeDto?> GetGlobalRecipeByIdAsync(
-        Guid id,
+        string idOrSlug,
         CancellationToken cancellationToken = default)
     {
+        if (Guid.TryParse(idOrSlug, out var id))
+        {
+            return await dbContext.Recipes
+                .Where(r => r.Id == id && r.Scope == RecipeScope.Global)
+                .Select(MapRecipe)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        var normalizedSlug = idOrSlug.Trim().ToLowerInvariant();
         return await dbContext.Recipes
-            .Where(r => r.Id == id && r.Scope == RecipeScope.Global)
+            .Where(r => r.Slug == normalizedSlug && r.Scope == RecipeScope.Global)
             .Select(MapRecipe)
             .FirstOrDefaultAsync(cancellationToken);
     }
@@ -105,6 +115,7 @@ public class RecipeService(IApplicationDbContext dbContext) : IRecipeService
         var recipe = new Recipe
         {
             Id = Guid.NewGuid(),
+            Slug = await GenerateUniqueSlugAsync(dto.Title.Trim(), cancellationToken),
             Title = dto.Title.Trim(),
             PrepTimeMinutes = dto.PrepTimeMinutes,
             CookTimeMinutes = dto.CookTimeMinutes,
@@ -352,6 +363,7 @@ public class RecipeService(IApplicationDbContext dbContext) : IRecipeService
         var recipe = new Recipe
         {
             Id = Guid.NewGuid(),
+            Slug = await GenerateUniqueSlugAsync(dto.Title.Trim(), cancellationToken),
             Title = dto.Title.Trim(),
             PrepTimeMinutes = dto.PrepTimeMinutes,
             CookTimeMinutes = dto.CookTimeMinutes,
@@ -619,9 +631,27 @@ public class RecipeService(IApplicationDbContext dbContext) : IRecipeService
             ingredients);
     }
 
+    private async Task<string> GenerateUniqueSlugAsync(
+        string title,
+        CancellationToken cancellationToken)
+    {
+        var baseSlug = RecipeSlugHelper.GenerateBaseSlug(title);
+        var slug = baseSlug;
+        var counter = 2;
+
+        while (await dbContext.Recipes.AnyAsync(r => r.Slug == slug, cancellationToken))
+        {
+            slug = $"{baseSlug}-{counter}";
+            counter++;
+        }
+
+        return slug;
+    }
+
     private static readonly System.Linq.Expressions.Expression<
         Func<Recipe, RecipeDto>> MapRecipe = r => new RecipeDto(
         r.Id,
+        r.Slug,
         r.Title,
         r.PrepTimeMinutes,
         r.CookTimeMinutes,

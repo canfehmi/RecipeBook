@@ -170,7 +170,7 @@ export function RecipeDetailPage() {
   const isLoading = isMyRecipe ? mineQuery.isLoading : globalQuery.isLoading;
 
   const recipe = isMyRecipe
-    ? mineQuery.data?.find((item) => item.id === id)
+    ? mineQuery.data?.find((item) => item.id === id || item.slug === id)
     : globalQuery.data;
 
   const alreadyInBook = useMemo(
@@ -277,17 +277,17 @@ export function RecipeDetailPage() {
   };
 
   const handleDelete = () => {
-    if (!id) {
+    if (!recipe) {
       return;
     }
-    deleteMutation.mutate(id);
+    deleteMutation.mutate(recipe.id);
   };
 
   const handleRejectPending = () => {
-    if (!id) {
+    if (!recipe) {
       return;
     }
-    rejectMutation.mutate(id);
+    rejectMutation.mutate(recipe.id);
   };
 
   const showEditDelete =
@@ -335,7 +335,7 @@ export function RecipeDetailPage() {
         <div className="flex flex-wrap items-center gap-3">
           {showEditDelete && (
             <>
-              <Link to={`/my-recipes/${recipe.id}/edit`} className="btn-secondary">
+              <Link to={`/my-recipes/${recipe.slug}/edit`} className="btn-secondary">
                 Düzenle
               </Link>
               <button
@@ -386,13 +386,13 @@ export function RecipeDetailPage() {
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={() => id && approveMutation.mutate(id)}
+              onClick={() => recipe && approveMutation.mutate(recipe.id)}
               disabled={isPendingActionPending}
               className="btn-primary"
             >
               {approveMutation.isPending ? 'Onaylanıyor...' : 'Onayla'}
             </button>
-            <Link to={`/my-recipes/${recipe.id}/edit`} className="btn-secondary">
+            <Link to={`/my-recipes/${recipe.slug}/edit`} className="btn-secondary">
               Düzenle
             </Link>
             <button

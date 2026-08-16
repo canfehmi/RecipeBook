@@ -115,7 +115,7 @@ function PendingRecipeCard({
             >
               {isApproving ? 'Onaylanıyor...' : 'Onayla'}
             </button>
-            <Link to={`/my-recipes/${recipe.id}/edit`} className="btn-secondary">
+            <Link to={`/my-recipes/${recipe.slug}/edit`} className="btn-secondary">
               Düzenle
             </Link>
             <button

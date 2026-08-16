@@ -64,7 +64,7 @@ export function MyRecipesPage() {
           {(recipes ?? []).map((recipe) => (
             <Link
               key={recipe.id}
-              to={`/my-recipes/${recipe.id}`}
+              to={`/my-recipes/${recipe.slug}`}
               className="card group overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md"
             >
               {recipe.coverImageUrl ? (

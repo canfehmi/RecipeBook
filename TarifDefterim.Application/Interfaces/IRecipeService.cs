@@ -10,7 +10,7 @@ public interface IRecipeService
         CancellationToken cancellationToken = default);
 
     Task<RecipeDto?> GetGlobalRecipeByIdAsync(
-        Guid id,
+        string idOrSlug,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<RecipeDto>> GetMyRecipesAsync(

@@ -185,18 +185,18 @@ export function AdminAddRecipePage() {
 
   const createMutation = useMutation({
     mutationFn: createGlobalRecipe,
-    onSuccess: async () => {
+    onSuccess: async (recipe) => {
       await queryClient.invalidateQueries({ queryKey: ['recipes', 'global'] });
-      navigate('/admin/recipes');
+      navigate(`/recipes/${recipe.slug}`);
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateRecipe }) =>
       updateGlobalRecipe(id, data),
-    onSuccess: async () => {
+    onSuccess: async (recipe) => {
       await queryClient.invalidateQueries({ queryKey: ['recipes', 'global'] });
-      navigate('/admin/recipes');
+      navigate(`/recipes/${recipe.slug}`);
     },
   });
 

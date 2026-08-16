@@ -67,12 +67,14 @@ function parseRequestUrl(url: string) {
 
 function buildRecipeMeta(recipe: Recipe): PageMeta {
   const description = `${recipe.title} tarifi — ${recipe.categoryName} kategorisinde, hazırlık ${recipe.prepTimeMinutes} dakika, pişirme ${recipe.cookTimeMinutes} dakika.`;
+  const recipeUrl = toAbsoluteUrl(`/recipes/${recipe.slug}`);
 
   const structuredData = {
     '@context': 'https://schema.org/',
     '@type': 'Recipe',
     name: recipe.title,
     description,
+    url: recipeUrl,
     image: recipe.coverImageUrl ? [recipe.coverImageUrl] : [],
     author: {
       '@type': 'Person',
@@ -101,7 +103,7 @@ function buildRecipeMeta(recipe: Recipe): PageMeta {
     title: `${recipe.title} | Ata Tarifi`,
     description,
     ogImage: recipe.coverImageUrl ?? undefined,
-    canonicalPath: toAbsoluteUrl(`/recipes/${recipe.id}`),
+    canonicalPath: recipeUrl,
     structuredData,
   };
 }
@@ -143,11 +145,11 @@ async function prefetchRouteData(
   }
 
   if (recipeMatch) {
-    const id = recipeMatch[1];
+    const idOrSlug = recipeMatch[1];
     try {
       const recipe = await queryClient.fetchQuery({
-        queryKey: ['recipes', 'global', id],
-        queryFn: () => getGlobalRecipeById(id),
+        queryKey: ['recipes', 'global', idOrSlug],
+        queryFn: () => getGlobalRecipeById(idOrSlug),
       });
       return buildRecipeMeta(recipe);
     } catch {

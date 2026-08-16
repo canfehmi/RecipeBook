@@ -43,6 +43,7 @@ export interface CreateRecipeIngredient {
 
 export interface Recipe {
   id: string;
+  slug: string;
   title: string;
   prepTimeMinutes: number;
   cookTimeMinutes: number;

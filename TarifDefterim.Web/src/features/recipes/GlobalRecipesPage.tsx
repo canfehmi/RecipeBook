@@ -381,7 +381,7 @@ export function GlobalRecipesPage() {
             {paginatedRecipes.map((recipe) => (
               <Link
                 key={recipe.id}
-                to={`/recipes/${recipe.id}`}
+                to={`/recipes/${recipe.slug}`}
                 className="card group overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 {recipe.coverImageUrl ? (

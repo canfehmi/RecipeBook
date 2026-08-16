@@ -9,9 +9,11 @@ import sirv from 'sirv';
 
 import {
   buildRobotsTxt,
+  fetchRecipeByIdOrSlug,
   getConfiguredSiteUrl,
   getSitemapXml,
   getSiteUrlFromRequest,
+  isGuid,
   toAbsoluteUrl,
 } from './server/seo.js';
 
@@ -96,6 +98,24 @@ const defaultMeta = {
 async function handleHtmlRequest(req, res, vite) {
   const url = req.originalUrl.split('#')[0];
   debugLog('[EXPRESS] HTML isteği, url:', url, 'shouldSSR:', shouldSSR(url));
+
+  const pathname = url.split('?')[0];
+  const recipeMatch = pathname.match(/^\/recipes\/([^/]+)$/);
+  if (recipeMatch) {
+    const param = decodeURIComponent(recipeMatch[1]);
+    if (isGuid(param)) {
+      try {
+        const recipe = await fetchRecipeByIdOrSlug(param);
+        if (recipe?.slug && recipe.slug !== param) {
+          const query = url.includes('?') ? url.slice(url.indexOf('?')) : '';
+          res.redirect(301, `/recipes/${encodeURIComponent(recipe.slug)}${query}`);
+          return;
+        }
+      } catch (error) {
+        debugLog('[EXPRESS] GUID slug redirect lookup failed:', error?.message ?? error);
+      }
+    }
+  }
 
   let template = templateHtml;
   let render;

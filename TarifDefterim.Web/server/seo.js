@@ -23,10 +23,19 @@ export function getSiteUrlFromRequest(req) {
 }
 
 export function getApiBaseUrl() {
-  return (process.env.API_BASE_URL || process.env.VITE_API_BASE_URL || 'https://api.atatarifi.com').replace(
-    /\/$/,
-    '',
-  );
+  if (process.env.API_BASE_URL) {
+    return process.env.API_BASE_URL.replace(/\/$/, '');
+  }
+
+  if (process.env.VITE_API_BASE_URL) {
+    return process.env.VITE_API_BASE_URL.replace(/\/$/, '');
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    return 'http://localhost:5152';
+  }
+
+  return 'https://api.atatarifi.com';
 }
 
 export function toAbsoluteUrl(siteUrl, pathname) {
@@ -95,13 +104,41 @@ async function fetchGlobalRecipes(apiBaseUrl) {
   return response.json();
 }
 
+export function isGuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+export async function fetchRecipeByIdOrSlug(idOrSlug) {
+  const apiBaseUrl = getApiBaseUrl();
+  const response = await fetch(`${apiBaseUrl}/api/recipes/${encodeURIComponent(idOrSlug)}`, {
+    headers: { Accept: 'application/json' },
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(`Recipe request failed with status ${response.status}`);
+  }
+
+  return response.json();
+}
+
 export function buildSitemapXml(siteUrl, recipes) {
   const staticEntries = [
     { loc: `${siteUrl}/`, changefreq: 'daily', priority: '1.0' },
+    { loc: `${siteUrl}/globalrecipes`, changefreq: 'daily', priority: '0.9' },
+    { loc: `${siteUrl}/hakkimizda`, changefreq: 'yearly', priority: '0.3' },
+    { loc: `${siteUrl}/iletisim`, changefreq: 'yearly', priority: '0.3' },
+    { loc: `${siteUrl}/gizlilik-politikasi`, changefreq: 'yearly', priority: '0.3' },
+    { loc: `${siteUrl}/kullanim-sozlesmesi`, changefreq: 'yearly', priority: '0.3' },
+    { loc: `${siteUrl}/kvkk`, changefreq: 'yearly', priority: '0.3' },
+    { loc: `${siteUrl}/cerez-politikasi`, changefreq: 'yearly', priority: '0.3' },
   ];
 
   const recipeEntries = recipes.map((recipe) => ({
-    loc: `${siteUrl}/recipes/${recipe.id}`,
+    loc: `${siteUrl}/recipes/${recipe.slug}`,
     lastmod: formatLastMod(recipe.createdAt),
     changefreq: 'monthly',
     priority: '0.8',

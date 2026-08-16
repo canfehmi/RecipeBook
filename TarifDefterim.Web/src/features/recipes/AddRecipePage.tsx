@@ -153,7 +153,7 @@ export function AddRecipePage() {
   });
 
   const editRecipe = useMemo(
-    () => mineQuery.data?.find((recipe) => recipe.id === editRecipeId),
+    () => mineQuery.data?.find((recipe) => recipe.id === editRecipeId || recipe.slug === editRecipeId),
     [mineQuery.data, editRecipeId],
   );
 
@@ -201,17 +201,17 @@ export function AddRecipePage() {
 
   const createMutation = useMutation({
     mutationFn: createRecipe,
-    onSuccess: async () => {
+    onSuccess: async (recipe) => {
       await queryClient.invalidateQueries({ queryKey: ['recipes', 'mine'] });
-      navigate('/my-recipes');
+      navigate(`/my-recipes/${recipe.slug}`);
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateRecipe }) => updateRecipe(id, data),
-    onSuccess: async (_recipe, variables) => {
+    onSuccess: async (recipe) => {
       await queryClient.invalidateQueries({ queryKey: ['recipes', 'mine'] });
-      navigate(`/my-recipes/${variables.id}`);
+      navigate(`/my-recipes/${recipe.slug}`);
     },
   });
 
@@ -273,8 +273,8 @@ export function AddRecipePage() {
       clearDraftIngredient();
     }
 
-    if (isEditMode && editRecipeId) {
-      updateMutation.mutate({ id: editRecipeId, data: payload });
+    if (isEditMode && editRecipe) {
+      updateMutation.mutate({ id: editRecipe.id, data: payload });
       return;
     }
 
@@ -306,7 +306,7 @@ export function AddRecipePage() {
     );
   }
 
-  const backLink = isEditMode && editRecipeId ? `/my-recipes/${editRecipeId}` : '/my-recipes';
+  const backLink = isEditMode && editRecipe ? `/my-recipes/${editRecipe.slug}` : '/my-recipes';
   const pageTitle = isEditMode ? 'Tarifi Düzenle' : 'Yeni Tarif Ekle';
   const submitLabel = isEditMode ? 'Değişiklikleri Kaydet' : 'Tarifi Kaydet';
 

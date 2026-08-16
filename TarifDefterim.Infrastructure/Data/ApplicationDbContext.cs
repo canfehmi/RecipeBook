@@ -108,6 +108,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .IsRequired()
                 .HasMaxLength(300);
 
+            entity.Property(r => r.Slug)
+                .IsRequired()
+                .HasMaxLength(300);
+
+            entity.HasIndex(r => r.Slug)
+                .IsUnique();
+
             entity.Property(r => r.Steps)
                 .IsRequired();
 

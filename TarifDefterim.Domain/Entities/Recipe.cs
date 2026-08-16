@@ -5,6 +5,7 @@ namespace TarifDefterim.Domain.Entities;
 public class Recipe
 {
     public Guid Id { get; set; }
+    public string Slug { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public int PrepTimeMinutes { get; set; }
     public int CookTimeMinutes { get; set; }

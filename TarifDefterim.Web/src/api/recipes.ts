@@ -11,8 +11,8 @@ export async function getGlobalRecipes(params?: GlobalRecipesParams): Promise<Re
   return response.data;
 }
 
-export async function getGlobalRecipeById(id: string): Promise<Recipe> {
-  const response = await apiClient.get<Recipe>(`/api/recipes/global/${id}`);
+export async function getGlobalRecipeById(idOrSlug: string): Promise<Recipe> {
+  const response = await apiClient.get<Recipe>(`/api/recipes/${encodeURIComponent(idOrSlug)}`);
   return response.data;
 }
 
