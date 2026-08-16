@@ -41,7 +41,7 @@ export interface PageMeta {
   title: string;
   description: string;
   ogImage?: string;
-  structuredData?: Record<string, unknown>;
+  structuredData?: Record<string, unknown> | Record<string, unknown>[];
   canonicalPath?: string;
 }
 
@@ -63,6 +63,39 @@ const landingMeta: PageMeta = {
 
 function parseRequestUrl(url: string) {
   return new URL(url, 'http://ssr.local');
+}
+
+function buildRecipeFaqSchema(recipe: Recipe) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: `${recipe.title} kaç kişilik?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `${recipe.servings} kişilik.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `${recipe.title} hazırlama ve pişirme süresi ne kadar?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `Hazırlık süresi ${recipe.prepTimeMinutes} dakika, pişirme süresi ${recipe.cookTimeMinutes} dakikadır.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `${recipe.title} hangi kategoride?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `${recipe.categoryName} kategorisindedir.`,
+        },
+      },
+    ],
+  };
 }
 
 function buildRecipeMeta(recipe: Recipe): PageMeta {
@@ -104,7 +137,7 @@ function buildRecipeMeta(recipe: Recipe): PageMeta {
     description,
     ogImage: recipe.coverImageUrl ?? undefined,
     canonicalPath: recipeUrl,
-    structuredData,
+    structuredData: [structuredData, buildRecipeFaqSchema(recipe)],
   };
 }
 

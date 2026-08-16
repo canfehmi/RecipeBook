@@ -60,8 +60,14 @@ function buildHeadTags(meta) {
   if (meta.ogImage) {
     tags += `<meta property="og:image" content="${escapeHtml(meta.ogImage)}" />`;
   }
-  if (meta.structuredData) {
-    tags += `<script type="application/ld+json">${JSON.stringify(meta.structuredData).replace(/</g, '\\u003c')}</script>`;
+  const structuredDataBlocks = Array.isArray(meta.structuredData)
+    ? meta.structuredData
+    : meta.structuredData
+      ? [meta.structuredData]
+      : [];
+
+  for (const block of structuredDataBlocks) {
+    tags += `<script type="application/ld+json">${JSON.stringify(block).replace(/</g, '\\u003c')}</script>`;
   }
   return tags;
 }

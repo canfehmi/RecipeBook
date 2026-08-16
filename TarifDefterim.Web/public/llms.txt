@@ -1,0 +1,21 @@
+# Ata Tarifi
+
+> Ata Tarifi, kullanıcıların aile tariflerini dijital bir deftere kaydedip 
+> nesiller arasında paylaşabildiği bir tarif uygulamasıdır. Kullanıcılar 
+> kendi tariflerini ekleyebilir, ailece ortak bir tarif defteri oluşturabilir 
+> ve sitede yayınlanmış tarifleri (giriş yapmadan) inceleyebilir.
+
+## Tarifler
+Tüm herkese açık tarifler /recipes/{slug} adresinde yer alır ve her biri 
+Recipe structured data (schema.org) içerir: malzemeler, hazırlanma/pişirme 
+süresi, porsiyon, adımlar.
+
+Tarif kategorileri: Çorbalar, Ana Yemekler, Sulu Yemekler, Zeytinyağlılar, 
+Kebaplar, Köfteler, Pilavlar, Makarnalar, Hamur İşleri, Kahvaltılıklar, 
+Salatalar, Mezeler, Atıştırmalıklar, Tatlılar, Kurabiyeler, Pastalar, 
+Ekmekler, Soslar, Turşular, İçecekler
+
+## Site haritası
+- Ana sayfa / tarif keşfi: /
+- Tüm tarifler: /globalrecipes
+- Sitemap: /sitemap.xml
