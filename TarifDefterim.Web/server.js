@@ -33,7 +33,7 @@ function debugLog(...args) {
 }
 
 const templateHtml = isProduction
-  ? fs.readFileSync(path.resolve(__dirname, 'dist/client/index.html'), 'utf-8')
+  ? fs.readFileSync(path.resolve(__dirname, 'dist/client/_template.html'), 'utf-8')
   : fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8');
 
 function escapeHtml(value) {
