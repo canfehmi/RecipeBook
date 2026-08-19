@@ -1,109 +1,207 @@
-# 🍽️ Ata Tarifi
+# 🍲 Ata Tarifi
 
-> A modern recipe management platform where users can build their own private recipe book, save global recipes and collaborate with family members.
+> A family-oriented digital recipe book where users can discover recipes, create their own private recipes, and build a shared recipe collection with their family.
 
-![GitHub last commit](https://img.shields.io/github/last-commit/USERNAME/AtaTarifi)
-![GitHub repo size](https://img.shields.io/github/repo-size/USERNAME/AtaTarifi)
-![GitHub stars](https://img.shields.io/github/stars/USERNAME/AtaTarifi?style=social)
+🌐 **Live:** https://atatarifi.com
+
+💻 **GitHub:** https://github.com/canfehmi
 
 ---
 
-# 📖 About
+## 📖 About
 
-Ata Tarifi is not just another recipe application.
+**Ata Tarifi** is a modern recipe management platform designed to solve a simple but common problem:
 
-It is a personal and family-oriented recipe management platform that allows users to securely store their recipes, build their own digital recipe book, and collaborate with family members through a shared recipe collection.
+Family recipes are often scattered across notebooks, WhatsApp messages, phone notes, or different websites and can easily become difficult to find or even get lost over time.
 
-Instead of simply browsing recipes, users can create their own private cooking archive and preserve family recipes in one place.
+Ata Tarifi brings these recipes together in one place.
+
+The platform allows users to:
+
+- Discover publicly available global recipes
+- Create their own recipes
+- Build a private recipe collection
+- Create a family
+- Invite family members
+- Share a common family recipe book
+- Preserve family recipes for future generations
+
+The core idea behind Ata Tarifi is not simply to provide recipes, but to create a **digital family recipe book** that can be used and maintained collectively.
 
 ---
 
 # ✨ Features
 
-## 🔐 Authentication
+## 🔐 Authentication & Authorization
+
+Ata Tarifi uses a secure authentication and authorization system built on ASP.NET Core Identity and JWT.
+
+Features include:
 
 - User Registration
 - User Login
 - JWT Authentication
 - ASP.NET Core Identity
 - Google Authentication
-- Role Based Authorization
+- Secure Password Management
+- Role-Based Authorization
+- Protected API endpoints
+- User-specific data authorization
+
+Authentication and authorization are handled on the backend to ensure that users can only access resources they are authorized to access.
 
 ---
 
-## 🍲 Global Recipes
+# 🌎 Global Recipes
 
-- Browse recipes
-- Recipe Categories
-- Search Recipes
-- Filter by Category
-- Detailed Recipe Page
+Global recipes are publicly available recipes that can be discovered by all users.
+
+Users can:
+
+- Browse global recipes
+- Search recipes
+- Filter recipes by category
+- View detailed recipe information
+- View recipe ingredients and preparation steps
+- Copy a global recipe to their own recipe book
+
+### 🔒 Read-Only Global Recipes
+
+Global recipes are centrally managed.
+
+Regular users cannot:
+
+- Edit global recipes
+- Delete global recipes
+- Modify global recipe content
+
+Users can only copy a global recipe into their own recipe book.
+
+This keeps the global recipe collection consistent while allowing users to personalize their own recipe books.
 
 ---
 
-## 📒 Personal Recipe Book
+# 📒 Personal Recipe Book
 
-Every user has a private recipe book.
+Every user can create and manage their own recipe collection.
 
-Users can
+Users can:
 
-- Save global recipes
-- Create their own recipes
-- Edit recipes
-- Delete recipes
+- Save global recipes to their recipe book
+- Create recipes from scratch
+- Edit their own recipes
+- Delete their own recipes
 - Upload recipe images
-- Manage personal recipe collection
+- Manage their personal recipe collection
 
-Private recipes are only visible to their owner.
+Private recipes created by a user are not publicly accessible.
 
----
-
-## 👨‍👩‍👧‍👦 Family System
-
-One of the core features of Ata Tarifi.
-
-Users can
-
-- Create a family
-- Invite members with invitation codes
-- Join families
-- Share a common recipe book
-- Manage family members
-- Promote/Demote family roles
-- Remove members
-
-Every family has its own shared recipe collection.
+The application enforces authorization at the API level so users cannot access another user's private recipes simply by changing an ID or URL.
 
 ---
 
-## 👑 Admin Panel
+# 👨‍👩‍👧‍👦 Family Recipe Book
 
-Administrators can manage
+The **Family System** is one of the core features of Ata Tarifi.
 
-- Recipes
-- Categories
-- Users
-- Uploaded Images
+Users can create a family and invite other registered users using an invitation code.
 
----
+Family members can then share a common recipe book.
 
-## ☁️ Image Management
-
-Recipe images are uploaded securely using Cloudinary.
-
-Features include
-
-- Upload Images
-- Update Images
-- Delete Images
+Each family has its own private recipe collection that is accessible only to members of that family.
 
 ---
 
-# 🛠 Tech Stack
+## 👑 Family Roles
+
+Each family has its own internal hierarchy.
+
+A family can have:
+
+- Minimum **1 Family Elder**
+- Maximum **2 Family Elders**
+- One or more Family Members
+
+### Family Elders
+
+Family Elders are responsible for managing the family.
+
+They can:
+
+- Approve family join requests
+- Reject family join requests
+- Remove family members
+- Promote members to Family Elder
+- Demote Family Elders when permitted
+- Approve new family recipes
+- Reject submitted recipes
+- Manage the shared family recipe collection
+
+### Family Members
+
+Family Members can:
+
+- View the family recipe book
+- Submit new recipes
+- Use recipes shared within the family
+- Participate in the family's shared recipe collection
+
+When a family member creates a new recipe, the recipe does not immediately become part of the shared family recipe book.
+
+It first requires approval from a Family Elder.
+
+This creates a controlled and family-oriented recipe management system.
+
+---
+
+# 🔒 Privacy & Data Isolation
+
+Privacy is one of the fundamental principles of Ata Tarifi.
+
+The platform separates:
+
+- Global recipes
+- Personal recipes
+- Family recipes
+
+### Global Recipes
+
+Visible to everyone.
+
+### Personal Recipes
+
+Visible only to the user who created or saved them.
+
+### Family Recipes
+
+Visible only to members of the corresponding family.
+
+Users cannot access another user's private recipes or another family's private recipe collection.
+
+Authorization is enforced on the backend rather than relying only on frontend restrictions.
+
+---
+
+# 🖼️ Recipe Images
+
+Ata Tarifi uses **Cloudinary** for recipe image management.
+
+Users can:
+
+- Upload recipe images
+- Update recipe images
+- Delete recipe images
+
+Cloudinary handles image storage and delivery while the application stores the necessary image references.
+
+---
+
+# 🛠️ Tech Stack
 
 ## Backend
 
 - ASP.NET Core Web API
+- .NET
 - Clean Architecture
 - Entity Framework Core
 - SQL Server
@@ -115,12 +213,14 @@ Features include
 - MediatR
 - Repository Pattern
 - Dependency Injection
+- RESTful API
 
 ---
 
 ## Frontend
 
 - React
+- Vite
 - React Router
 - Axios
 - React Hook Form
@@ -128,161 +228,324 @@ Features include
 
 ---
 
-## Cloud
+## Infrastructure & Services
 
+- SQL Server
 - Cloudinary
+- Google Authentication
+- JWT
+- SMTP / Email Services
 
 ---
 
-# 📂 Architecture
+# 🏗️ Architecture
 
-```
+Ata Tarifi follows a **Clean Architecture** approach to keep the application maintainable, testable and loosely coupled.
+
+```text
 Ata Tarifi
-
+│
 ├── Domain
+│   ├── Entities
+│   └── Enums
+│
 ├── Application
-├── Persistence
+│   ├── Constants
+│   ├── DTOs
+│   ├── Exceptions
+│   ├── Helpers
+│   ├── Options
+│   ├── Security
+│   ├── Services
+│   └── Interfaces
+│
 ├── Infrastructure
-├── WebAPI
+│   ├── EmailTemplates
+│   ├── Email
+│   ├── Data
+│   ├── Options
+│   └── Services
+│
+└── WebAPI
+    ├── Controllers
+    ├── Properties
+    └── Program.cs
 
 Frontend
+│
+├── api
+├── public
+├── scripts
+├── server
+└── src
 
-├── Components
-├── Pages
-├── Hooks
-├── Services
-├── Context
-├── Layouts
-```
+# 🔄 Core Application Flow
 
----
+The main Ata Tarifi workflow can be summarized as:
 
+User Registration / Login
+          │
+          ▼
+      User Account
+          │
+          ├───────────────┐
+          │               │
+          ▼               ▼
+   Global Recipes     Family System
+          │               │
+          ▼               ▼
+   Copy Recipe       Create / Join Family
+          │               │
+          ▼               ▼
+   Personal Book      Family Recipe Book
+                              │
+                              ▼
+                       Submit Recipe
+                              │
+                              ▼
+                       Elder Approval
+                              │
+                              ▼
+                     Shared Family Recipe
 
 # 🚀 Getting Started
 
-## Clone the repository
+## Prerequisites
 
-```bash
-git clone https://github.com/USERNAME/AtaTarifi.git
-```
+Before running Ata Tarifi locally, make sure you have:
 
-Backend
+- .NET SDK
+- SQL Server
+- Node.js
+- npm
+- Git
 
-```bash
-cd Backend
-```
+You will also need configuration for:
 
-Install packages
-
-```bash
-dotnet restore
-```
-
-Run migrations
-
-```bash
-dotnet ef database update
-```
-
-Start API
-
-```bash
-dotnet run
-```
-
-Frontend
-
-```bash
-cd Frontend
-```
-
-Install packages
-
-```bash
-npm install
-```
-
-Run project
-
-```bash
-npm run dev
-```
+- Cloudinary
+- Google OAuth
+- SMTP / Email service
 
 ---
 
-# 🔐 Environment Variables
+## 1. Clone the Repository
 
-Create an `appsettings.json` file.
-
-```
-ConnectionStrings
-
-Jwt
-
-Google Authentication
-
-Cloudinary
-
-Mail Settings
-```
+    git clone https://github.com/canfehmi/AtaTarifi.git
+    cd AtaTarifi
 
 ---
 
-# 🗺 Roadmap
+## 2. Backend Setup
 
-- [x] Authentication
-- [x] Google Login
-- [x] JWT Authentication
-- [x] Global Recipes
-- [x] Personal Recipe Book
-- [x] Family System
-- [x] Cloudinary Integration
-- [x] Admin Panel
+Navigate to the backend project:
 
-### Planned Features
+    cd Backend
 
-- [ ] Favorites
+Restore NuGet packages:
+
+    dotnet restore
+
+Configure the following settings in `appsettings.json` or `appsettings.Development.json`:
+
+- SQL Server connection string
+- JWT settings
+- Google Authentication
+- Cloudinary
+- SMTP / Email settings
+
+Apply Entity Framework Core migrations:
+
+    dotnet ef database update
+
+Start the API:
+
+    dotnet run
+
+---
+
+## 3. Frontend Setup
+
+Open another terminal and navigate to the frontend project:
+
+    cd Frontend
+
+Install dependencies:
+
+    npm install
+
+Start the development server:
+
+    npm run dev
+
+---
+
+# 🔐 Environment Configuration
+
+Sensitive configuration values should never be committed to the repository.
+
+The backend requires configuration for:
+
+- Database connection
+- JWT
+- Google Authentication
+- Cloudinary
+- SMTP / Email
+
+Example configuration structure:
+
+    {
+      "ConnectionStrings": {
+        "DefaultConnection": "YOUR_CONNECTION_STRING"
+      },
+      "Jwt": {
+        "Key": "YOUR_SECRET_KEY",
+        "Issuer": "YOUR_ISSUER",
+        "Audience": "YOUR_AUDIENCE"
+      },
+      "Google": {
+        "ClientId": "YOUR_CLIENT_ID",
+        "ClientSecret": "YOUR_CLIENT_SECRET"
+      },
+      "Cloudinary": {
+        "CloudName": "YOUR_CLOUD_NAME",
+        "ApiKey": "YOUR_API_KEY",
+        "ApiSecret": "YOUR_API_SECRET"
+      }
+    }
+
+Never commit:
+
+- Database passwords
+- JWT secrets
+- Google Client Secrets
+- Cloudinary API secrets
+- SMTP passwords
+- Other sensitive credentials
+
+---
+
+# 🌍 Production
+
+Ata Tarifi is deployed as a real production application.
+
+**Frontend**
+
+https://atatarifi.com
+
+**Backend API**
+
+https://api.atatarifi.com
+
+The frontend and backend are deployed separately and communicate through the REST API.
+
+---
+
+# 📱 Responsive Design
+
+Ata Tarifi is designed to work across desktop and mobile screen sizes.
+
+The application is especially designed for recipe browsing and recipe management scenarios where users may access their recipe book while cooking.
+
+A native mobile application is planned for a future release.
+
+---
+
+# 🧪 Security & Authorization
+
+Security and data isolation are important parts of the Ata Tarifi architecture.
+
+The application uses:
+
+- JWT Authentication
+- ASP.NET Core Identity
+- Google Authentication
+- Role-Based Authorization
+- User-specific resource authorization
+- Family-specific resource authorization
+- Protected administrative operations
+
+The frontend is not treated as the security boundary.
+
+Authorization rules are enforced by the backend API.
+
+This ensures that private resources cannot be accessed simply by manipulating URLs, route parameters or recipe IDs.
+
+---
+
+# 🗺️ Roadmap
+
+Ata Tarifi is actively being developed.
+
+## Planned Features
+
+- [ ] Favorite Recipes
 - [ ] Shopping List
 - [ ] Weekly Meal Planner
-- [ ] Nutrition Information
+- [ ] Advanced Recipe Search
+- [ ] Advanced Recipe Filtering
 - [ ] Recipe Ratings
-- [ ] Comments
+- [ ] Recipe Comments
 - [ ] Email Notifications
-- [ ] Mobile Responsive Improvements
+- [ ] Progressive Web App (PWA)
+- [ ] Native Mobile Application
+- [ ] Offline Recipe Access
+
+---
+
+# 🔮 Future Vision
+
+The long-term goal of Ata Tarifi is to evolve from a recipe management platform into a broader **digital cooking and family recipe ecosystem**.
+
+Future improvements may include:
+
+- 🤖 AI-powered recipe suggestions
+- 🛒 Smart shopping lists
+- 📅 Meal planning
+- 🥗 Nutrition information
+- 📱 Native mobile application
+- 🔔 Push notifications
+- 📦 Offline recipe access
+- 📷 Improved recipe creation with mobile camera support
 
 ---
 
 # 🎯 Project Goals
 
-Ata Tarifi aims to provide a modern digital cookbook where users can
+Ata Tarifi was built around several core goals.
 
-- Preserve family recipes
-- Build a personal recipe archive
-- Share recipes securely with family members
-- Access recipes anywhere
+### Preserve Family Recipes
 
----
+Help families digitally preserve recipes that have traditionally been stored in notebooks, messages or personal notes.
 
-# 📈 Future Vision
+### Create Private Recipe Collections
 
-Ata Tarifi is planned to become more than a recipe application.
+Give users a secure place to store their own recipes.
 
-Future releases will include
+### Enable Family Collaboration
 
-- AI Recipe Suggestions
-- Smart Shopping Lists
-- Meal Planning
-- Nutrition Tracking
-- Mobile Application
-- Progressive Web App (PWA)
+Allow family members to build and maintain a shared recipe collection.
+
+### Protect Private Data
+
+Ensure that personal and family recipes are only accessible to authorized users.
+
+### Build a Real Product
+
+Ata Tarifi is designed not only as a portfolio project, but as a real-world product that can be used by real users and continuously improved through user feedback.
 
 ---
 
 # 🤝 Contributing
 
-Contributions, ideas and feedback are always welcome.
+Ata Tarifi is currently developed and maintained by **Fehmi ÜN**.
 
-Feel free to open an Issue or submit a Pull Request.
+Suggestions, bug reports and feature ideas are welcome.
+
+Feel free to:
+
+- Open an Issue
+- Submit a Pull Request
+- Share feedback
 
 ---
 
@@ -290,20 +553,38 @@ Feel free to open an Issue or submit a Pull Request.
 
 This project is licensed under the MIT License.
 
+See the `LICENSE` file for details.
+
 ---
 
 # 👨‍💻 Developer
 
-**Fehmi ÜN**
+## Fehmi ÜN
 
-GitHub
+Full Stack Developer focused on **ASP.NET Core, React and modern web application development.**
+
+**GitHub**
 
 https://github.com/canfehmi
 
-LinkedIn
+**LinkedIn**
 
 https://www.linkedin.com/in/fehmi-%C3%BCn-136542314/
 
 ---
 
-⭐ If you like this project, don't forget to leave a star!
+# ⭐ Support
+
+If you find Ata Tarifi interesting, consider giving the repository a ⭐.
+
+Your feedback and suggestions are always welcome.
+
+---
+
+# 🍲 Ata Tarifi
+
+**A digital family recipe book for preserving recipes, sharing memories and keeping family traditions alive.**
+
+🌐 https://atatarifi.com
+
+💻 https://github.com/canfehmi
