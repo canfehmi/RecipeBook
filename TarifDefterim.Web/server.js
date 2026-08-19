@@ -94,6 +94,10 @@ function shouldSSR(url) {
   );
 }
 
+function isStaticAssetPath(pathname) {
+  return /\.[a-zA-Z0-9]+$/.test(pathname);
+}
+
 const defaultMeta = {
   title: 'Ata Tarifi | Ailenizin tarifleri kaybolmasın',
   description:
@@ -201,13 +205,22 @@ async function createApp(httpServer) {
     });
     app.use(vite.middlewares);
   } else {
+    const clientRoot = path.resolve(__dirname, 'dist/client');
     app.use(
-      `${base}assets`.replace(/\/+/g, '/'),
-      sirv(path.resolve(__dirname, 'dist/client/assets'), { extensions: [] }),
+      sirv(clientRoot, {
+        extensions: [],
+        single: false,
+      }),
     );
   }
 
   app.use(async (req, res, next) => {
+    const pathname = req.path.split('?')[0];
+
+    if (isStaticAssetPath(pathname)) {
+      return next();
+    }
+
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       return next();
     }
@@ -225,6 +238,15 @@ async function createApp(httpServer) {
       debugLog('[EXPRESS] HATA:', error?.message ?? error);
       next(error);
     }
+  });
+
+  app.use((req, res, next) => {
+    if (isStaticAssetPath(req.path.split('?')[0])) {
+      res.status(404).end();
+      return;
+    }
+
+    next();
   });
 
   return app;
