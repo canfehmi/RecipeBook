@@ -206,12 +206,20 @@ async function createApp(httpServer) {
     app.use(vite.middlewares);
   } else {
     const clientRoot = path.resolve(__dirname, 'dist/client');
-    app.use(
-      sirv(clientRoot, {
-        extensions: [],
-        single: false,
-      }),
-    );
+    const serveClientStatic = sirv(clientRoot, {
+      // Sirv has no `index: false`; empty extensions disable / -> /index.html resolution.
+      extensions: [],
+      single: false,
+    });
+
+    app.use((req, res, next) => {
+      const pathname = req.path.split('?')[0];
+      if (pathname === '/' || pathname === '/index.html' || pathname === '/index.htm') {
+        return next();
+      }
+
+      serveClientStatic(req, res, next);
+    });
   }
 
   app.use(async (req, res, next) => {
