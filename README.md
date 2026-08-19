@@ -308,7 +308,7 @@ User Registration / Login
                               ▼
                      Shared Family Recipe
 
-```text
+```
 
 # 🚀 Getting Started
 
