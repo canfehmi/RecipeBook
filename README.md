@@ -242,7 +242,6 @@ Cloudinary handles image storage and delivery while the application stores the n
 
 Ata Tarifi follows a **Clean Architecture** approach to keep the application maintainable, testable and loosely coupled.
 
-```text
 Ata Tarifi
 │
 ├── Domain
